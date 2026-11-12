@@ -63,3 +63,26 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+# Projekt: BrainUp
+
+Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgeschwindigkeit, Kopfrechnen, Aufwärmen & Fokus). Live unter https://mason1-glitch.github.io/brainup/
+
+## Pflichtlektüre vor jeder Arbeit
+
+1. `docs/PLAN.md` – Gesamtplan, Phasen, Abnahmekriterien
+2. `docs/HANDOFF.md` – aktueller Stand und nächste offene Aufgabe
+3. `docs/DECISIONS.md` – getroffene Architekturentscheidungen
+
+## Übergaberegeln
+
+- An dieser App arbeiten nacheinander mehrere Modelle (erst Fable, dann Opus). Jede Sitzung kann jederzeit enden.
+- Nach jedem abgeschlossenen Schritt: Tests grün → Commit → Push → `docs/HANDOFF.md` aktualisieren (Status, nächster Schritt, Fallstricke).
+- Architekturentscheidungen kommen in `docs/DECISIONS.md` (Entscheidung, Grund, verworfene Alternative). Bestehende Entscheidungen nur nach Rückfrage beim Nutzer ändern.
+- Beim Start einer Sitzung zuerst `git status` prüfen: Unfertige Änderungen zu Ende führen oder begründet verwerfen.
+
+## Architektur, Befehle, verbindliche Regeln
+
+_Wird beim Bau des Fundaments ergänzt (Befehle für dev/test/build, Ordnerstruktur, Regeln zu Design-Tokens, Timing-Engine, Datenzugriff, Spiel-Vorlage, Definition of Done)._
