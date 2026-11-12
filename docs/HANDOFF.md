@@ -2,10 +2,11 @@
 
 ## Stand
 
-- Repo eingerichtet, Plan in `docs/PLAN.md`, Übergabe-Gerüst angelegt.
-- Noch kein App-Code.
+- Gearbeitet wird auf dem Branch `fundament` (noch nicht in `main`).
+- Schritt 2 fertig: Vite 8 + Svelte 5 + TypeScript 6 strict + Vitest laufen (`npm run dev`, `npm test`, `npm run build`). Datenmodell und Repository (`src/data/`), Spiel-Schnittstelle (`src/games/types.ts`), Tagesprogramm-Planung (`src/program/daily.ts`) stehen; Architektur in `docs/DECISIONS.md` D3–D7.
+- Noch keine Oberfläche (`src/app/App.svelte` ist ein Platzhalter), noch keine Spiele.
 
-**Nächster Schritt:** Fable, Schritt 2 (Gerüst und Architektur).
+**Nächster Schritt:** Fable, Schritt 3 (Kernmodule mit Tests in `src/core/`).
 
 ## Aufgaben
 
@@ -14,7 +15,7 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`, sofern hier ni
 ### Fable – Fundament und schwierigste Teile
 
 - [x] 1. Übergabe-Gerüst (CLAUDE.md-Projektteil, HANDOFF.md, DECISIONS.md)
-- [ ] 2. Gerüst und Architektur: Vite + TypeScript (strict) + Svelte + Vitest; Datenmodell (Dexie), Spiel-Schnittstelle, Ablauf des Tagesprogramms, Ordnerstruktur → in DECISIONS.md
+- [x] 2. Gerüst und Architektur: Vite + TypeScript (strict) + Svelte + Vitest; Datenmodell (Dexie), Spiel-Schnittstelle, Ablauf des Tagesprogramms, Ordnerstruktur → in DECISIONS.md
 - [ ] 3. Kernmodule mit Tests: Timing-Engine, Staircase, exakte Arithmetik, Spaced-Repetition-Warteschlange
 - [ ] 4. Designsystem und App-Shell, Styleguide unter /dev/styleguide (danach anhalten, Nutzer schaut es sich an)
 - [ ] 5. Referenzspiele: a) Mentale Rotation, b) UFOV, c) Kopfrechnen-Kern + Sprint-UI
@@ -35,6 +36,8 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`, sofern hier ni
 
 ## Bekannte Fallstricke
 
+- TypeScript bleibt auf Version 6: svelte-check unterstützt TS 7 nur mit Parallelinstallation (D3).
+- `npm install` warnt wegen des Install-Skripts von `fsevents` – harmlos, nichts freigeben nötig.
 - GitHub Pages liegt unter `/brainup/`: Vite `base`, Manifest `start_url` und `scope` müssen passen, sonst bleibt die Seite weiß oder die App lässt sich nicht installieren.
 - Pages-Workflow braucht `permissions: pages: write, id-token: write` und das Environment `github-pages`. Pages-Source ist auf „GitHub Actions“ gestellt.
 - Playwright in CI: `npx playwright install --with-deps`.
