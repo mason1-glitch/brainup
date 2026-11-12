@@ -60,3 +60,10 @@ Je Eintrag: Entscheidung, Grund, verworfene Alternative. Bestehende Einträge nu
   - `e2e/` – Playwright.
 - **Grund:** Abhängigkeiten zeigen nur nach unten (routes → games/ui → core/data); ein Spiel ist ein in sich geschlossener Ordner.
 - **Verworfen:** Sortierung nach Dateityp (`components/`, `stores/`, `utils/`) – ein Spiel wäre über das ganze Projekt verstreut.
+
+## D8 – Designsystem: CSS-Variablen als Tokens, Systemschrift, eine Akzentfarbe, keine UI-Bibliothek
+
+- **Entscheidung:** Alle Gestaltungswerte sind CSS-Variablen in `src/design/tokens.css` (Farben, Schrift, Abstände, Radien, Bewegung, Safe Areas). Hell/Dunkel über `light-dark()` und `color-scheme`; `data-theme` am `<html>` erzwingt ein Schema, `data-motion="reduced"` schaltet Bewegung ab. Schrift ist die Systemschrift, für Zahlen, Überschriften und Tasten die runde Variante (`ui-rounded`). Eine Akzentfarbe (Indigo); Grün/Rot ausschließlich als Rückmeldung richtig/falsch. Basiskomponenten liegen in `src/ui/` (Button, Card, Segmented, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Icon) und werden im Styleguide `#/dev/styleguide` gezeigt. Komponenten-CSS ist gekapselt (`<style>` in der Svelte-Datei) und verwendet nur Tokens.
+- **Grund:** Ein Ort für jeden Wert hält die App einheitlich, auch wenn mehrere Modelle nacheinander daran bauen. Systemschrift lädt nichts nach (Start < 1 s, offline) und wirkt auf iPhone und Mac heimisch. `light-dark()` erspart doppelte Farbblöcke.
+- **Verworfen:** Tailwind oder eine Komponentenbibliothek (Abhängigkeit, beliebiges Aussehen, größeres Bundle); Webfonts (Ladezeit, Offline-Aufwand); getrennte `@media (prefers-color-scheme)`-Blöcke (jede Farbe doppelt zu pflegen). `light-dark()` setzt iOS/Safari 17.5+ voraus – bewusst in Kauf genommen.
+- **Regel:** Fehlt eine Komponente, wird sie in `src/ui/` ergänzt und in den Styleguide aufgenommen – nicht in einer Seite oder einem Spiel nachgebaut.

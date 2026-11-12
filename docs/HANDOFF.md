@@ -5,9 +5,12 @@
 - Gearbeitet wird auf dem Branch `fundament` (noch nicht in `main`).
 - Schritt 2 fertig: Vite 8 + Svelte 5 + TypeScript 6 strict + Vitest laufen (`npm run dev`, `npm test`, `npm run build`). Datenmodell und Repository (`src/data/`), Spiel-Schnittstelle (`src/games/types.ts`), Tagesprogramm-Planung (`src/program/daily.ts`) stehen; Architektur in `docs/DECISIONS.md` D3–D7.
 - Schritt 3 fertig: Kernmodule in `src/core/` mit Tests – `timing` (rAF-Reizbeginn, Frame-Rundung, Soll/Ist-Protokoll), `staircase` (n-down-1-up, Schätzer trifft simulierte Schwelle über 100 Seeds auf ±10 %), `fraction` (exakte Brüche auf bigint), `srs` (Warteschlange für Rechenfehler), `rng` (seedbarer Zufall).
-- Noch keine Oberfläche (`src/app/App.svelte` ist ein Platzhalter), noch keine Spiele.
+- Schritt 4 fertig: Designsystem (`src/design/tokens.css`, `base.css`), Basiskomponenten in `src/ui/`, App-Shell mit Hash-Router und Tab-Leiste (`src/app/`), Seiten Heute/Spiele/Fortschritt/Einstellungen (`src/routes/`, die letzten beiden sind Platzhalter), Spiel-Host `src/routes/Play.svelte`, Styleguide unter `#/dev/styleguide`.
+- Noch keine Spiele (`src/games/registry.ts` ist leer).
 
-**Nächster Schritt:** Fable, Schritt 4 (Designsystem, App-Shell, Styleguide).
+**Nächster Schritt:** Fable, Schritt 5a (Mentale Rotation) – nachdem der Nutzer das Design gesehen hat.
+
+**Ansehen:** `npm run dev` → http://localhost:5173/brainup/#/dev/styleguide · auf dem iPhone im selben WLAN: `npm run dev:phone` und die angezeigte „Network“-Adresse + `/brainup/#/dev/styleguide` öffnen.
 
 ## Aufgaben
 
@@ -18,7 +21,7 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`, sofern hier ni
 - [x] 1. Übergabe-Gerüst (CLAUDE.md-Projektteil, HANDOFF.md, DECISIONS.md)
 - [x] 2. Gerüst und Architektur: Vite + TypeScript (strict) + Svelte + Vitest; Datenmodell (Dexie), Spiel-Schnittstelle, Ablauf des Tagesprogramms, Ordnerstruktur → in DECISIONS.md
 - [x] 3. Kernmodule mit Tests: Timing-Engine, Staircase, exakte Arithmetik, Spaced-Repetition-Warteschlange
-- [ ] 4. Designsystem und App-Shell, Styleguide unter /dev/styleguide (danach anhalten, Nutzer schaut es sich an)
+- [x] 4. Designsystem und App-Shell, Styleguide unter /dev/styleguide (danach anhalten, Nutzer schaut es sich an)
 - [ ] 5. Referenzspiele: a) Mentale Rotation, b) UFOV, c) Kopfrechnen-Kern + Sprint-UI
 - [ ] 6. Vorlage für neue Spiele: `docs/ADDING_A_GAME.md` und `.claude/commands/neues-spiel.md`
 - [ ] 7. Übergabe vervollständigen (CLAUDE.md-Abschnitt „Architektur, Befehle, verbindliche Regeln“, diese Datei)
@@ -45,3 +48,5 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`, sofern hier ni
 - iOS: Daten bleiben nur in der installierten Home-Bildschirm-App zuverlässig erhalten; Vibration im Browser kaum verfügbar.
 - Staircase-Schwelle: `threshold()` mittelt die Werte der Durchgänge (nicht die Umkehrpunkte – die streuen doppelt so stark). ±10 % brauchen einige hundert Durchgänge; eine einzelne Sitzung liegt eher bei ±20 %. Verläufe deshalb über mehrere Sitzungen glätten.
 - Vitest zeigt `console.log` bestandener Tests nicht an (Reporter `dot`); zum Debuggen `npx vitest run <datei> --reporter=verbose`.
+- Die Dev-URL braucht den Pfad `/brainup/` (wegen `base`); `http://localhost:5173/` allein zeigt nur einen Hinweis von Vite.
+- `<meta name="theme-color">` folgt dem System-Schema, nicht der App-Einstellung „Hell/Dunkel“ – beim Bau der Einstellungen (Phase 4) per Skript nachziehen.

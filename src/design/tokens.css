@@ -1,2 +1,106 @@
+/*
+ * Design-Tokens – die einzige Quelle für Farben, Schrift, Abstände, Radien und Bewegung.
+ * Komponenten verwenden ausschließlich diese Variablen, nie feste Werte.
+ * Hell/Dunkel über light-dark(); `data-theme` am <html> erzwingt ein Schema.
+ */
 :root {
+  color-scheme: light dark;
+
+  /* Flächen */
+  --bg: light-dark(#f6f5f1, #111213);
+  --surface: light-dark(#ffffff, #1b1c1e);
+  --sunken: light-dark(#eceae4, #242528);
+  --line: light-dark(#e2dfd7, #2e2f33);
+
+  /* Text */
+  --ink: light-dark(#17181a, #f2f1ed);
+  --ink-2: light-dark(#585a61, #a9aab0);
+  --ink-3: light-dark(#6c6e75, #8a8c93);
+
+  /* Die eine Akzentfarbe */
+  --accent: light-dark(#3f51d9, #96a1ff);
+  --on-accent: light-dark(#ffffff, #0e1030);
+  --accent-soft: light-dark(#e7e9fb, #23264a);
+
+  /* Rückmeldung – nur für richtig/falsch, nie als Dekoration */
+  --good: light-dark(#1f8a5b, #56c596);
+  --good-soft: light-dark(#dff3e9, #17352a);
+  --bad: light-dark(#c8463c, #f08a80);
+  --bad-soft: light-dark(#f9e3e0, #3a1d1a);
+
+  --shadow: light-dark(0 1px 2px rgb(20 20 30 / 0.04), 0 0 0 transparent),
+    light-dark(0 8px 24px rgb(20 20 30 / 0.06), 0 0 0 transparent);
+
+  /* Schrift */
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Zahlen, Überschriften, Tasten: die runde Systemschrift, wo vorhanden */
+  --font-display: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  --text-xs: 0.8125rem; /* 13 */
+  --text-sm: 0.9375rem; /* 15 */
+  --text-md: 1.0625rem; /* 17 */
+  --text-lg: 1.25rem; /* 20 */
+  --text-xl: 1.75rem; /* 28 */
+  --text-2xl: 2.5rem; /* 40 */
+  --text-3xl: 4.5rem; /* 72 */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 650;
+
+  --leading-tight: 1.1;
+  --leading: 1.45;
+
+  /* Abstände (4er-Raster) */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4rem;
+
+  /* Radien */
+  --r-sm: 0.625rem;
+  --r-md: 1rem;
+  --r-lg: 1.5rem;
+  --r-full: 999px;
+
+  /* Maße */
+  --tap: 3rem; /* Mindest-Touchfläche 48 px (≥ 44 pt) */
+  --content: 34rem; /* maximale Inhaltsbreite */
+
+  /* Bewegung: ruhig, kurz, nie federnd */
+  --dur-fast: 120ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Safe Areas */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Reduzierte Bewegung: Systemeinstellung oder App-Einstellung (data-motion="reduced") */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+    --dur-slow: 0ms;
+  }
+}
+:root[data-motion='reduced'] {
+  --dur-fast: 0ms;
+  --dur: 0ms;
+  --dur-slow: 0ms;
 }
