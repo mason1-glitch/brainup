@@ -6,7 +6,8 @@
 
   interface Props {
     value?: string;
-    onSubmit: (value: string) => void;
+    /** `timeStamp` des auslösenden Ereignisses – gleiche Zeitbasis wie die Timing-Engine. */
+    onSubmit: (value: string, timeStamp: number) => void;
     /** Komma-Taste aktiv. */
     decimal?: boolean;
     /** Bruchstrich aktiv. */
@@ -27,10 +28,10 @@
     disabled = false,
   }: Props = $props();
 
-  function press(key: string) {
+  function press(key: string, timeStamp: number) {
     if (disabled) return;
     if (key === 'ok') {
-      if (value !== '') onSubmit(value);
+      if (value !== '') onSubmit(value, timeStamp);
     } else if (key === 'del') {
       value = value.slice(0, -1);
     } else if (key === '−') {
@@ -52,7 +53,7 @@
       : e.key;
     if (key === 'ok' || key === 'del' || /^[0-9,/−]$/.test(key)) {
       e.preventDefault();
-      press(key);
+      press(key, e.timeStamp);
     }
   }
 </script>
@@ -68,11 +69,11 @@
     data-key={k}
     onpointerdown={(e) => {
       e.preventDefault();
-      press(k);
+      press(k, e.timeStamp);
     }}
     onclick={(e) => {
       // Nur Tastatur-Aktivierung (Enter/Leertaste); Zeiger wurde schon bei pointerdown behandelt.
-      if (e.detail === 0) press(k);
+      if (e.detail === 0) press(k, e.timeStamp);
     }}
   >
     {#if k === 'del'}<Icon name="backspace" />{:else if k === 'ok'}<Icon name="check" size={28} />{:else}{k}{/if}

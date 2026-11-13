@@ -8,8 +8,9 @@
 - Schritt 4 fertig: Designsystem (`src/design/tokens.css`, `base.css`), Basiskomponenten in `src/ui/`, App-Shell mit Hash-Router und Tab-Leiste (`src/app/`), Seiten Heute/Spiele/Fortschritt/Einstellungen (`src/routes/`, die letzten beiden sind Platzhalter), Spiel-Host `src/routes/Play.svelte`, Styleguide unter `#/dev/styleguide`.
 - Schritt 5a fertig: Mentale Rotation (`src/games/rotation/`) mit Tutorial, Staircase über 12 Level, Tests (3000 Figuren auf Chiralität geprüft) und Playwright-Lauf im iPhone-Viewport (`npm run e2e`, WebKit, gegen den Produktions-Build).
 - Schritt 5b fertig: „Blickfeld“ (UFOV, `src/games/ufov/`) – Darbietung über die Timing-Engine, Staircase auf der Darbietungszeit, drei Stufen (Mitte · + Rand · + Ablenker), Tutorial, Tests; der Playwright-Lauf prüft zusätzlich die gespeicherten Soll/Ist-Zeiten auf ±1 Frame.
+- Schritt 5c fertig: Kopfrechnen (`src/games/arithmetic/`) – Generatoren für alle zehn Typen mit Leveln 1–10 (`generators.ts`), Property-Tests über 10 000 Aufgaben mit unabhängiger Nachrechnung, Adaptivität je Rechentyp, Wiederholungsliste (`reviews.ts`) wird schon befüllt, Sprint-Modus (60 s, gemischt) mit Tutorial und Playwright-Lauf.
 
-**Nächster Schritt:** Fable, Schritt 5c (Kopfrechnen-Kern + Sprint-UI).
+**Nächster Schritt:** Fable, Schritt 6 (Vorlage für weitere Spiele).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · Styleguide unter `#/dev/styleguide` · auf dem iPhone im selben WLAN: `npm run dev:phone` und die angezeigte „Network“-Adresse + `/brainup/` öffnen.
 
