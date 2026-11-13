@@ -85,4 +85,63 @@ Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgesc
 
 ## Architektur, Befehle, verbindliche Regeln
 
-_Wird beim Bau des Fundaments ergänzt (Befehle für dev/test/build, Ordnerstruktur, Regeln zu Design-Tokens, Timing-Engine, Datenzugriff, Spiel-Vorlage, Definition of Done)._
+### Befehle
+
+| Befehl | Zweck |
+| --- | --- |
+| `npm run dev` | Dev-Server, http://localhost:5173/brainup/ (der Pfad `/brainup/` gehört dazu) |
+| `npm run dev:phone` | Dev-Server im WLAN fürs iPhone („Network“-Adresse + `/brainup/`) |
+| `npm test` | Vitest, alle `src/**/*.test.ts` (knappe Ausgabe) |
+| `npx vitest run <pfad> --reporter=verbose` | einzelne Tests mit Details |
+| `npm run check` | Typprüfung (svelte-check) |
+| `npm run build` | Typprüfung + Produktions-Build nach `dist/` |
+| `npm run e2e` | Playwright (WebKit, iPhone-Viewport) gegen den Produktions-Build; einmalig vorher `npx playwright install webkit` |
+
+Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` · `#/dev/styleguide`.
+
+### Ordnerstruktur
+
+```
+src/
+  core/      reine Kernmodule ohne DOM-Abhängigkeit der Logik: timing, staircase, fraction, srs, rng
+  data/      types (Datenmodell), db (Dexie-Schema), repo (einziger Datenzugang)
+  design/    tokens.css (alle Gestaltungswerte), base.css
+  ui/        Basiskomponenten: Button, Card, Segmented, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Icon
+  games/     types (GameDefinition), registry, metrics, e2e + je Spiel ein Ordner (logic, Run, Tutorial, index)
+  program/   Tagesprogramm (planDaily)
+  routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte
+  app/       App.svelte (Shell), router, theme, TabBar
+e2e/         Playwright-Tests und helpers
+docs/        PLAN, HANDOFF, DECISIONS, ADDING_A_GAME, (GAMES)
+```
+
+Abhängigkeiten zeigen nur nach unten: `routes` → `games`/`ui` → `core`/`data`. `core` importiert nichts aus anderen Ordnern.
+
+### Verbindliche Regeln
+
+1. **Nur Design-Tokens und Basiskomponenten.** Keine festen Farben, Schriftgrößen, Abstände, Radien oder Zeiten in Komponenten – immer `var(--…)` aus `src/design/tokens.css`. Bedienelemente kommen aus `src/ui/`. Fehlt eine Komponente oder ein Token, wird es dort ergänzt und im Styleguide gezeigt, nicht lokal nachgebaut.
+2. **Reize nur über die Timing-Engine.** Alles, was im Spiel zeitlich zählt – Reizbeginn, Darbietungsdauer, Masken, Wartezeiten, Reaktionszeiten – läuft über `timing` aus `src/core/timing.ts` (`onset`, `present`, `wait`, `rt`, `quantize`). Kein `setTimeout`/`setInterval` in Spielen. Antworten werden per `pointerdown` angenommen.
+3. **Daten nur über das Repository.** Zugriff auf IndexedDB ausschließlich über `repo` aus `src/data/repo.ts`; niemand sonst importiert Dexie oder `db.ts`. Spiele speichern nicht selbst – der Host tut es. Schemaänderungen nur als neue `version(n+1)` (Regeln in `db.ts` und D4). Rohdaten (`trials`) werden nie verändert oder gelöscht; Kennzahlen werden daraus berechnet.
+4. **Neue Spiele nur per Vorlage.** `/neues-spiel <id>` bzw. `docs/ADDING_A_GAME.md`. Jedes Spiel erfüllt `GameDefinition`, hat Logik als reine Funktionen mit Tests, ein interaktives Tutorial und einen E2E-Lauf.
+5. **Exakte Arithmetik.** Rechenaufgaben und Antwortprüfung nur mit `src/core/fraction.ts` (bigint-Brüche). Gleitkomma höchstens für die Anzeige.
+6. **Zufall wird injiziert.** Logik bekommt `rng: Rng` als Parameter; Tests nutzen `seededRng`.
+7. **Neue Abhängigkeiten nur mit Begründung.** Vor `npm install <paket>`: Eintrag in `docs/DECISIONS.md` (Entscheidung, Grund, verworfene Alternative). Bereits in PLAN.md vorgesehen und damit erlaubt: `vite-plugin-pwa`, Lighthouse CI, axe-core.
+8. **App-Texte versprechen nur Belegtes** und decken sich mit `docs/GAMES.md`. Sprache der App und der Doku: Deutsch; Bezeichner im Code: Englisch.
+9. **Bestehende Entscheidungen** in `docs/DECISIONS.md` nur nach Rückfrage beim Nutzer ändern.
+
+### Svelte-5-Hinweise
+
+- Runes-Modus überall. Reaktiver Zustand außerhalb von Komponenten braucht die Endung `.svelte.ts`.
+- Prop `state` beim Destrukturieren umbenennen (`let { state: initial } = $props()`).
+- Wird ein Reiz per Zustandsänderung gezeigt, danach `flushSync()` aufrufen, damit das DOM im selben Frame steht.
+
+### Definition of Done
+
+Ein Schritt ist fertig, wenn:
+
+- `npm test`, `npm run build` und `npm run e2e` grün sind,
+- neue Logik Tests hat (Aufgaben-Korrektheit unabhängig vom Generator geprüft),
+- die Oberfläche im iPhone-Viewport hell und dunkel angesehen wurde,
+- die Regeln oben eingehalten sind,
+- `docs/HANDOFF.md` den neuen Stand, den nächsten Schritt und neue Fallstricke nennt (Architekturentscheidungen zusätzlich in `docs/DECISIONS.md`),
+- committet und gepusht ist.

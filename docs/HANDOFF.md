@@ -2,55 +2,75 @@
 
 ## Stand
 
-- Gearbeitet wird auf dem Branch `fundament` (noch nicht in `main`).
-- Schritt 2 fertig: Vite 8 + Svelte 5 + TypeScript 6 strict + Vitest laufen (`npm run dev`, `npm test`, `npm run build`). Datenmodell und Repository (`src/data/`), Spiel-Schnittstelle (`src/games/types.ts`), Tagesprogramm-Planung (`src/program/daily.ts`) stehen; Architektur in `docs/DECISIONS.md` D3–D7.
-- Schritt 3 fertig: Kernmodule in `src/core/` mit Tests – `timing` (rAF-Reizbeginn, Frame-Rundung, Soll/Ist-Protokoll), `staircase` (n-down-1-up, Schätzer trifft simulierte Schwelle über 100 Seeds auf ±10 %), `fraction` (exakte Brüche auf bigint), `srs` (Warteschlange für Rechenfehler), `rng` (seedbarer Zufall).
-- Schritt 4 fertig: Designsystem (`src/design/tokens.css`, `base.css`), Basiskomponenten in `src/ui/`, App-Shell mit Hash-Router und Tab-Leiste (`src/app/`), Seiten Heute/Spiele/Fortschritt/Einstellungen (`src/routes/`, die letzten beiden sind Platzhalter), Spiel-Host `src/routes/Play.svelte`, Styleguide unter `#/dev/styleguide`.
-- Schritt 5a fertig: Mentale Rotation (`src/games/rotation/`) mit Tutorial, Staircase über 12 Level, Tests (3000 Figuren auf Chiralität geprüft) und Playwright-Lauf im iPhone-Viewport (`npm run e2e`, WebKit, gegen den Produktions-Build).
-- Schritt 5b fertig: „Blickfeld“ (UFOV, `src/games/ufov/`) – Darbietung über die Timing-Engine, Staircase auf der Darbietungszeit, drei Stufen (Mitte · + Rand · + Ablenker), Tutorial, Tests; der Playwright-Lauf prüft zusätzlich die gespeicherten Soll/Ist-Zeiten auf ±1 Frame.
-- Schritt 5c fertig: Kopfrechnen (`src/games/arithmetic/`) – Generatoren für alle zehn Typen mit Leveln 1–10 (`generators.ts`), Property-Tests über 10 000 Aufgaben mit unabhängiger Nachrechnung, Adaptivität je Rechentyp, Wiederholungsliste (`reviews.ts`) wird schon befüllt, Sprint-Modus (60 s, gemischt) mit Tutorial und Playwright-Lauf.
+Fable hat die Schritte 1–7 abgeschlossen (Fundament und schwierigste Teile). Alles liegt auf dem Branch **`fundament`** und ist gepusht; in `main` ist davon noch nichts.
 
-**Nächster Schritt:** Fable, Schritt 6 (Vorlage für weitere Spiele).
+- **Gerüst:** Vite 8, Svelte 5 (Runes), TypeScript 6 strict, Vitest, Dexie, Playwright.
+- **Kernmodule** (`src/core/`, alle getestet): `timing`, `staircase`, `fraction`, `srs`, `rng`.
+- **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang.
+- **Design** (`src/design/`, `src/ui/`): Tokens, Basiskomponenten, Styleguide unter `#/dev/styleguide`.
+- **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute/Spiele (echt), Fortschritt/Einstellungen (Platzhalter; Einstellungen kann nur Hell/Dunkel), Spiel-Host `Play.svelte`.
+- **Drei Referenzspiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
+  - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
+  - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
+  - `arithmetic` – Kopfrechnen (zehn Typen × zehn Level, Sprint-Modus)
+- **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`.
+- **Abnahme Fable:** `npm test` (69 Tests), `npm run build`, `npm run e2e` (4 Läufe im iPhone-Viewport) grün.
 
-**Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · Styleguide unter `#/dev/styleguide` · auf dem iPhone im selben WLAN: `npm run dev:phone` und die angezeigte „Network“-Adresse + `/brainup/` öffnen.
+**Nächster Schritt:** Opus, Phase 0 (siehe unten). Vorher mit dem Nutzer klären, ob `fundament` per Pull Request nach `main` soll.
+
+**Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`.
 
 ## Aufgaben
 
-Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`, sofern hier nichts anderes steht.
+Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`. Regeln und Definition of Done stehen in `CLAUDE.md`.
 
-### Fable – Fundament und schwierigste Teile
+### Fable – erledigt
 
-- [x] 1. Übergabe-Gerüst (CLAUDE.md-Projektteil, HANDOFF.md, DECISIONS.md)
-- [x] 2. Gerüst und Architektur: Vite + TypeScript (strict) + Svelte + Vitest; Datenmodell (Dexie), Spiel-Schnittstelle, Ablauf des Tagesprogramms, Ordnerstruktur → in DECISIONS.md
-- [x] 3. Kernmodule mit Tests: Timing-Engine, Staircase, exakte Arithmetik, Spaced-Repetition-Warteschlange
-- [x] 4. Designsystem und App-Shell, Styleguide unter /dev/styleguide (danach anhalten, Nutzer schaut es sich an)
-- [ ] 5. Referenzspiele: a) Mentale Rotation, b) UFOV, c) Kopfrechnen-Kern + Sprint-UI
-- [ ] 6. Vorlage für neue Spiele: `docs/ADDING_A_GAME.md` und `.claude/commands/neues-spiel.md`
-- [ ] 7. Übergabe vervollständigen (CLAUDE.md-Abschnitt „Architektur, Befehle, verbindliche Regeln“, diese Datei)
+- [x] 1. Übergabe-Gerüst
+- [x] 2. Gerüst und Architektur (DECISIONS D3–D7)
+- [x] 3. Kernmodule mit Tests
+- [x] 4. Designsystem, App-Shell, Styleguide (D8) – vom Nutzer angesehen und freigegeben
+- [x] 5. Referenzspiele a) Rotation, b) UFOV, c) Kopfrechnen-Kern + Sprint
+- [x] 6. Vorlage für neue Spiele
+- [x] 7. Übergabe (CLAUDE.md, diese Datei, DECISIONS D9–D12)
 
-### Opus – Rest
+### Opus – offen
 
-- [ ] Phase 0 aus PLAN.md: Aufwärm-Spiele auswählen, `docs/GAMES.md` (danach anhalten)
-- [ ] Aufwärm-Spiele per `/neues-spiel`
-- [ ] Kopfrechnen: Modi Präzision und Fehlertraining, Rechentricks
-- [ ] Tagesprogramm
-- [ ] Phase 3: Fortschritt und Einstufungslauf
-- [ ] Phase 4: Einstellungen, Export/Import, Persistenz, .ics-Erinnerungen
-- [ ] PWA/offline und Deploy per GitHub Actions auf Pages
-- [ ] Playwright-E2E, Lighthouse CI, axe-core
-- [ ] Phase 5: Red Team
+- [ ] **Phase 0** aus PLAN.md: 4–5 Aufwärm-Spiele auswählen, `docs/GAMES.md` anlegen (auch Einträge für die drei vorhandenen Spiele), **danach anhalten und dem Nutzer zeigen**. Die Texte `title`/`tagline`/`description` in `src/games/*/index.ts` sind vorläufig und danach gegen GAMES.md abzugleichen.
+- [ ] **Aufwärm-Spiele** einzeln per `/neues-spiel <id>` (Bereich `warmup`).
+- [ ] **Übrige Trainingsspiele** aus PLAN.md: Papierfalten, Schnittansichten (Bereich `training`), ebenfalls per `/neues-spiel`.
+- [ ] **Kopfrechnen ausbauen:**
+  - Modi „Präzision“ (ohne Zeitdruck, feste Aufgabenzahl) und „Fehlertraining“ in `arithmetic/index.ts` (`modes`) ergänzen; `arithmetic/Run.svelte` nach `mode.id` verzweigen. Fürs Fehlertraining liegen `dueTasks()` (`reviews.ts`) und `pickDue()` (`core/srs.ts`) bereit; die Liste wird vom Sprint schon gefüllt.
+  - Auswahl einzelner Rechentypen (bisher mischt der Sprint alle; `pickKind` nimmt schon eine Typliste).
+  - Rechentrick nach Fehlern (optional, je Typ).
+- [ ] **Tagesprogramm:** `planDaily` (`src/program/daily.ts`) und die Typen `ProgramRun`/`ProgramStep` stehen, `repo.putProgramRun`/`programRunsOfDay` auch. Es fehlen: Start-Button auf „Heute“, Anlegen/Fortsetzen des `ProgramRun`, und im Host der Sprung zum nächsten Schritt – `Play.svelte` bekommt `programRunId` schon als Prop und beschriftet den Button mit „Weiter“, navigiert aber noch zu `/spiele` (`leave()`). `recent` für `planDaily` aus den letzten Sitzungen ableiten (bisher leer). Konfiguration über `settings`.
+- [ ] **Phase 3 – Fortschritt:** Verlauf je Spiel und je Rechentyp (`repo.sessionsOfGame`, `Session.summary`, `Trial.kind`), Bestwerte, Kalender (`Session.day`), Wochenziel (`ProgressRing`). Einstufungslauf beim ersten Start: Startwerte der Staircases setzen. Für neue Abfragen `repo` erweitern, nicht umgehen.
+- [ ] **Phase 4 – Rest:** Einstellungen (Ton, Haptik, reduzierte Bewegung → `data-motion="reduced"` am `<html>`, Sitzungslänge), JSON-Export/-Import (`repo.exportAll/importAll` neu, `SCHEMA_VERSION` mitschreiben; Test „verlustfrei“ ist Abnahmekriterium), `navigator.storage.persist()`, Erinnerung als `.ics`.
+- [ ] **PWA und Deploy:** `vite-plugin-pwa` (Manifest `start_url` und `scope` = `/brainup/`, Icons), GitHub Actions auf Pages.
+- [ ] **Tests ausbauen:** Pixel-Profil in `playwright.config.ts`, Tagesprogramm-Lauf, Offline-Lauf, Lighthouse CI, axe-core, Timing-Log über 200 Durchgänge.
+- [ ] **Spieldesign-Durchsicht** der drei Referenzspiele (PLAN.md Phase 2: „Spiel oder Test?“) – z. B. sichtbare Serie oder Punkte während des Laufs.
+- [ ] **Phase 5 – Red Team.**
+
+## Was Fable nicht geprüft hat
+
+- Kein Test auf einem echten iPhone; alle Läufe in Playwright-WebKit mit iPhone-15-Profil auf dem Mac.
+- Die Spiele wurden nur im hellen Design angesehen (der Styleguide in beiden).
+- UFOV-Stufe 3 (Ablenker) ist nur durch Unit-Tests abgedeckt, nicht gespielt oder angesehen; Stufe 2 nur im Tutorial. Prüfen, ob Zielpunkt und Ablenker-Dreiecke gut unterscheidbar und die Stufe fair ist.
+- Rotation: Die Flächen werden per Maleralgorithmus (Sortierung nach Tiefe des Flächenmittelpunkts) gezeichnet. In den geprüften Ansichten sauber; bei ungünstigen Winkeln sind Überdeckungsfehler denkbar – beim Red Team gezielt ansehen.
+- Barrierefreiheit wurde nicht mit axe geprüft.
 
 ## Bekannte Fallstricke
 
-- TypeScript bleibt auf Version 6: svelte-check unterstützt TS 7 nur mit Parallelinstallation (D3).
-- `npm install` warnt wegen des Install-Skripts von `fsevents` – harmlos, nichts freigeben nötig.
-- GitHub Pages liegt unter `/brainup/`: Vite `base`, Manifest `start_url` und `scope` müssen passen, sonst bleibt die Seite weiß oder die App lässt sich nicht installieren.
+- GitHub Pages liegt unter `/brainup/`: Vite `base` ist gesetzt; Manifest `start_url` und `scope` müssen später dazu passen. Die Dev-URL braucht den Pfad ebenfalls – `http://localhost:5173/` allein zeigt nur einen Hinweis.
 - Pages-Workflow braucht `permissions: pages: write, id-token: write` und das Environment `github-pages`. Pages-Source ist auf „GitHub Actions“ gestellt.
-- Playwright in CI: `npx playwright install --with-deps`.
-- iOS: Daten bleiben nur in der installierten Home-Bildschirm-App zuverlässig erhalten; Vibration im Browser kaum verfügbar.
-- Staircase-Schwelle: `threshold()` mittelt die Werte der Durchgänge (nicht die Umkehrpunkte – die streuen doppelt so stark). ±10 % brauchen einige hundert Durchgänge; eine einzelne Sitzung liegt eher bei ±20 %. Verläufe deshalb über mehrere Sitzungen glätten.
-- Vitest zeigt `console.log` bestandener Tests nicht an (Reporter `dot`); zum Debuggen `npx vitest run <datei> --reporter=verbose`.
-- Die Dev-URL braucht den Pfad `/brainup/` (wegen `base`); `http://localhost:5173/` allein zeigt nur einen Hinweis von Vite.
-- `<meta name="theme-color">` folgt dem System-Schema, nicht der App-Einstellung „Hell/Dunkel“ – beim Bau der Einstellungen (Phase 4) per Skript nachziehen.
-- E2E: Der Bot erkennt die richtige Antwort an `data-correct`; das Attribut gibt es nur, wenn `window.__brainupE2E` gesetzt ist (`e2e/helpers.ts`, `src/games/e2e.ts`). Einmalig `npx playwright install webkit` nötig.
-- Spieldesign-Durchsicht („Spiel oder Test?“, PLAN.md Phase 2) steht für die Referenzspiele noch aus: z. B. sichtbare Serie/Punkte während des Laufs.
+- Playwright: lokal einmalig `npx playwright install webkit`, in CI `npx playwright install --with-deps webkit`. `npm run e2e` startet selbst Build + Preview auf Port 4173 und dauert gut eine Minute (der Kopfrechen-Sprint läuft echte 60 s).
+- E2E-Bot: `data-correct`/`data-answer` gibt es nur mit `window.__brainupE2E` (D12). Nach einer Antwort auf den Aufgabenwechsel warten, nicht auf feste Zeiten (siehe `e2e/arithmetic.spec.ts`).
+- TypeScript bleibt auf Version 6: svelte-check unterstützt TS 7 nur mit Parallelinstallation (D3).
+- `npm install` warnt wegen des Install-Skripts von `fsevents` – harmlos.
+- Vitest zeigt `console.log` bestandener Tests mit dem Reporter `dot` nicht; zum Debuggen `--reporter=verbose`.
+- Staircase-Schwelle streut: ±10 % erst nach einigen hundert Durchgängen, eine Sitzung liegt bei etwa ±20 % (D10). Verläufe glätten, Bestwerte nicht auf einer einzelnen Schwellenschätzung aufbauen.
+- `<meta name="theme-color">` folgt dem System-Schema, nicht der App-Einstellung Hell/Dunkel.
+- iOS: Daten bleiben nur in der installierten Home-Bildschirm-App zuverlässig erhalten; Vibration ist im Browser kaum verfügbar.
+- Spiel-IDs (`rotation`, `ufov`, `arithmetic`) und Modus-IDs stehen in gespeicherten Daten – nicht umbenennen. Der Anzeigename darf sich ändern.
+- Ändert sich die Form eines Schwierigkeitszustands: `stateVersion` erhöhen und `migrateState` schreiben, sonst startet das Spiel für alle wieder bei Level 1.
+- `.claude/launch.json` enthält die Dev-Server-Einträge für die Vorschau in der Claude-App.

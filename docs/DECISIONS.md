@@ -67,3 +67,28 @@ Je Eintrag: Entscheidung, Grund, verworfene Alternative. Bestehende Einträge nu
 - **Grund:** Ein Ort für jeden Wert hält die App einheitlich, auch wenn mehrere Modelle nacheinander daran bauen. Systemschrift lädt nichts nach (Start < 1 s, offline) und wirkt auf iPhone und Mac heimisch. `light-dark()` erspart doppelte Farbblöcke.
 - **Verworfen:** Tailwind oder eine Komponentenbibliothek (Abhängigkeit, beliebiges Aussehen, größeres Bundle); Webfonts (Ladezeit, Offline-Aufwand); getrennte `@media (prefers-color-scheme)`-Blöcke (jede Farbe doppelt zu pflegen). `light-dark()` setzt iOS/Safari 17.5+ voraus – bewusst in Kauf genommen.
 - **Regel:** Fehlt eine Komponente, wird sie in `src/ui/` ergänzt und in den Styleguide aufgenommen – nicht in einer Seite oder einem Spiel nachgebaut.
+
+## D9 – Timing-Engine: rAF-Zeitstempel als Zeitbasis, Dauer in Frames, alles abbrechbar
+
+- **Entscheidung:** `src/core/timing.ts` zeigt Reize im `requestAnimationFrame`-Callback und nimmt dessen Zeitstempel als Reizbeginn; Dauern werden auf ganze Frames gerundet (`quantize`), die Bildrate wird einmal je Spielstart gemessen (`calibrate`, Median, auf bekannte Raten eingerastet). Reaktionszeit = `pointerdown.timeStamp` − Reizbeginn. Jede Operation liefert ein Handle mit `cancel()`; Soll/Ist jeder Darbietung landet im Protokoll und – bei zeitkritischen Spielen – in den Rohdaten des Durchgangs.
+- **Grund:** rAF-Zeitstempel und Ereignis-Zeitstempel teilen dieselbe Uhr; nur Frame-Vielfache sind tatsächlich darstellbar; abbrechbare Handles machen Pause und Abbruch sauber. Die Uhr ist injizierbar, dadurch ist die Engine ohne Browser testbar.
+- **Verworfen:** `setTimeout` (Jitter von mehreren ms, nicht an den Bildaufbau gekoppelt); `click`-Ereignisse (auf Touch-Geräten verzögert).
+
+## D10 – Staircase: ein Modul, Schwelle als Mittel der Durchgangswerte
+
+- **Entscheidung:** `src/core/staircase.ts` ist rein funktional (n-down-1-up, additiv oder multiplikativ, Schrittweiten nach Zahl der Umkehrungen). Die Schwelle wird als (bei Zeiten geometrisches) Mittel der Durchgangswerte nach der Einschwingphase geschätzt.
+- **Grund:** In der Simulation streut das klassische Mittel der Umkehrpunkte bei gleicher Datenmenge etwa doppelt so stark und verfehlte ±10 % in rund einem Viertel der Läufe; das Mittel der Durchgangswerte trifft über 100 Seeds mit je 500 Durchgängen.
+- **Verworfen:** Mittel der Umkehrpunkte; Bayes-Verfahren wie QUEST (genauer, aber deutlich komplexer und schwerer zu erklären).
+- **Folge:** Einzelne Sitzungen (30–40 Durchgänge) sind nur auf etwa ±20 % genau – Verläufe über mehrere Sitzungen glätten.
+
+## D11 – Kopfrechnen: zehn Typen mit je zehn Leveln, Staircase je Typ, Tempo zählt
+
+- **Entscheidung:** `src/games/arithmetic/generators.ts` kennt die Typen `table`, `add`, `sub`, `mul`, `div`, `percent`, `power`, `fraction`, `pow10`, `estimate`, jeweils Level 1–10 (Tabellen im Code: Stellenzahl, Überträge, Zahlenbereiche). Jeder Typ hat einen eigenen 2-down-1-up-Staircase. Falsch → leichter; richtig und zügig → zählt fürs Aufsteigen; richtig, aber langsamer als `slowMs(kind, level)` → keine Änderung. Der Sprint mischt alle Typen. Aufgaben werden als JSON mit der Lösung als Bruch-Text gespeichert (`toRecord`/`fromRecord`). Falsche und langsame Aufgaben wandern schon jetzt in die Wiederholungsliste (`reviews.ts`).
+- **Grund:** Ein Level je Typ entspricht PLAN.md („Schwierigkeit je Typ adaptiv über Stellenzahl, Überträge und Tempo“). 2-down statt 3-down, weil im gemischten Sprint je Typ nur ein bis drei Aufgaben pro Sitzung anfallen. bigint ist nicht JSON-fähig, der Export soll aber JSON sein.
+- **Verworfen:** Ein gemeinsames Level für alle Typen (wer gut addiert, bekäme zu schwere Brüche); Antwortzeit als zweite Staircase-Dimension (schwer vorhersagbar, kaum testbar).
+
+## D12 – E2E: Playwright mit WebKit gegen den Produktions-Build, Bot liest `data-correct`
+
+- **Entscheidung:** `npm run e2e` baut die App, startet `vite preview` und spielt im iPhone-15-Profil (WebKit). Spiele schreiben die richtige Antwort nur dann als `data-correct`/`data-answer` ins DOM, wenn `window.__brainupE2E` gesetzt ist (`src/games/e2e.ts`, `e2e/helpers.ts`).
+- **Grund:** WebKit ist die Engine des iPhones; gegen den Build getestet wird, was ausgeliefert wird. Ein Bot, der richtig antwortet, prüft Adaptivität, Wertung und Speicherung statt nur „stürzt nicht ab“.
+- **Verworfen:** Zufällig tippender Bot (prüft kaum etwas); Antworten immer im DOM (Schummeln per Entwicklerwerkzeug wäre egal, aber es bläht das DOM auf und verführt zu Abkürzungen im Code).
