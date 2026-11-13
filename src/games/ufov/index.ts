@@ -9,7 +9,7 @@ export const ufov = defineGame<UfovState>({
   title: 'Blickfeld',
   tagline: 'Mitte erkennen, Rand orten – in Sekundenbruchteilen',
   description:
-    'Kurz blitzt eine Form in der Mitte auf, zugleich ein Punkt am Rand. Tippe danach an, welche Form es war und wo der Punkt lag. Je besser du wirst, desto kürzer die Darbietung.',
+    'Kurz blitzt eine Form in der Mitte auf, ab Stufe 2 zugleich ein Punkt am Rand. Tippe danach an, welche Form es war und wo der Punkt lag. Je besser du wirst, desto kürzer die Darbietung.',
   modes: [{ id: 'standard', title: 'Standard', budget: { trials: 30 } }],
   stateVersion: 1,
   initialState,

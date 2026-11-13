@@ -13,7 +13,7 @@
   import ResultScreen from '../../ui/ResultScreen.svelte';
   import Segmented from '../../ui/Segmented.svelte';
 
-  const colors = ['bg', 'surface', 'sunken', 'line', 'ink', 'ink-2', 'ink-3', 'accent', 'accent-soft', 'good', 'good-soft', 'bad', 'bad-soft'];
+  const colors = ['bg', 'surface', 'sunken', 'line', 'ink', 'ink-2', 'ink-3', 'accent', 'accent-soft', 'good', 'good-soft', 'bad', 'bad-soft', 'solid-lit', 'solid-shade'];
   const sizes = ['3xl', '2xl', 'xl', 'lg', 'md', 'sm', 'xs'];
   const spaces = [1, 2, 3, 4, 5, 6, 7, 8];
   const icons: IconName[] = ['today', 'games', 'chart', 'settings', 'pause', 'play', 'close', 'back', 'chevron', 'backspace', 'check'];

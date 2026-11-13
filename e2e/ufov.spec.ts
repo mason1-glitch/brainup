@@ -52,3 +52,40 @@ test('Blickfeld (UFOV): Tutorial, kompletter Lauf, Ergebnis, Timing', async ({ p
   // Der Staircase hat die Darbietung verkürzt.
   expect(trials.at(-1)!.difficulty).toBeLessThan(trials[0]!.difficulty);
 });
+
+test('Blickfeld (UFOV): drei fehlerfreie Läufe schalten Stufe 2 und 3 frei; Stufe 3 zeigt Ablenker', async ({ page }) => {
+  test.setTimeout(240_000);
+  await openGame(page, 'ufov');
+  await page.getByRole('button', { name: 'Kurz üben' }).click();
+  for (let i = 0; i < 3; i++) await answer(page);
+
+  // Im dritten Lauf mitzählen, was in der Darbietung steht (MutationObserver, da nur wenige Frames sichtbar).
+  await page.evaluate(() => {
+    const seen = { stimuli: 0, distractors: 0, targets: 0 };
+    (window as unknown as { __seen: typeof seen }).__seen = seen;
+    new MutationObserver(() => {
+      const field = document.querySelector('.field[data-phase="stimulus"]');
+      if (!field || field.hasAttribute('data-counted')) return;
+      field.setAttribute('data-counted', '');
+      seen.stimuli++;
+      seen.distractors += field.querySelectorAll('svg .outline').length;
+      seen.targets += field.querySelectorAll('svg circle.ink[cx]').length;
+    }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-phase'] });
+  });
+
+  for (const stage of [1, 2, 3]) {
+    for (let i = 1; i <= 30; i++) await answer(page);
+    await expect(page.getByText(`${stage} von 3`)).toBeVisible();
+    await expect(page.getByText('100 %')).toBeVisible();
+    if (stage < 3) {
+      await expect(page.getByText(`Stufe ${stage + 1} freigeschaltet`)).toBeVisible();
+      await page.getByRole('button', { name: 'Nochmal' }).click();
+    }
+  }
+
+  // Stufe 3: in jedem Durchgang genau ein Zielpunkt und 15 Ablenker (16 Plätze).
+  const seen = await page.evaluate(() => (window as unknown as { __seen: { stimuli: number; distractors: number; targets: number } }).__seen);
+  expect(seen.stimuli).toBe(90);
+  expect(seen.targets).toBe(60);
+  expect(seen.distractors).toBe(30 * 15);
+});

@@ -5,7 +5,7 @@
   import { repo } from '../../data/repo';
   import type { RunProps } from '../types';
   import { check, nextTask, type Kind, type Task } from './generators';
-  import { applyAnswer, levelOfKind, outcomeOf, pickKind, toRecord, type ArithmeticState } from './logic';
+  import { applyAnswer, levelOfKind, outcomeOf, pickKind, pointsFor, toRecord, type ArithmeticState } from './logic';
   import { recordReview } from './reviews';
   import TaskPad from './TaskPad.svelte';
 
@@ -16,6 +16,7 @@
   // svelte-ignore state_referenced_locally
   let current: ArithmeticState = initial;
   let elapsed = 0;
+  let score = 0;
 
   let task = $state.raw<Task | null>(null);
   let count = $state(0);
@@ -50,6 +51,7 @@
     const correct = check(task, input);
     const rtMs = timeStamp - onset;
     onTrial({ kind: task.kind, ts: startedAt, task: toRecord(task), response: input, rtMs, correct, difficulty: task.level });
+    if (correct) score += pointsFor(task.level);
     const outcome = outcomeOf(task, correct, rtMs);
     current = applyAnswer(current, task, outcome);
     void recordReview(repo, task, outcome);
@@ -72,7 +74,8 @@
       if (last !== null) elapsed += t - last;
       last = t;
       const left = Math.max(0, totalMs - elapsed);
-      onProgress(elapsed / totalMs, `${Math.ceil(left / 1000)} s`);
+      // Punkte laufen sichtbar mit – im Sprint zählt jede Aufgabe.
+      onProgress(elapsed / totalMs, `${score} P · ${Math.ceil(left / 1000)} s`);
       if (left <= 0) {
         pending?.cancel();
         onFinish(current);
