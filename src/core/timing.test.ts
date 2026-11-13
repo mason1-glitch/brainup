@@ -111,6 +111,25 @@ describe('present', () => {
   });
 });
 
+describe('wait', () => {
+  it('wartet die gerundete Frame-Zahl und lässt sich abbrechen', async () => {
+    const c = fakeClock(1000 / 60);
+    const engine = createTimingEngine(c.clock);
+    let fired = 0;
+    void engine.wait(50).done.then(() => fired++);
+    await c.run(3);
+    expect(fired).toBe(0);
+    await c.run(1);
+    expect(fired).toBe(1);
+    const h = engine.wait(50);
+    void h.done.then(() => fired++);
+    await c.run(2);
+    h.cancel();
+    await c.run(5);
+    expect(fired).toBe(1);
+  });
+});
+
 describe('onset / rt', () => {
   it('RT ist Ereigniszeit minus Reizbeginn', async () => {
     const c = fakeClock(1000 / 60);

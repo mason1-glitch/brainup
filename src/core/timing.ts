@@ -67,6 +67,8 @@ export interface TimingEngine {
   present: (durationMs: number, show: () => void, hide: () => void) => Handle<Presentation>;
   /** Reiz zeigen, der bis zur Antwort bleibt; liefert den Reizbeginn. */
   onset: (show: () => void) => Handle<number>;
+  /** Frame-genaue Wartezeit (Rückmeldung, Pausen zwischen Durchgängen) – abbrechbar, anders als setTimeout. */
+  wait: (ms: number) => Handle<void>;
   /** Reaktionszeit eines Pointer-Ereignisses relativ zum Reizbeginn. */
   rt: (event: { timeStamp: number }, onset: number) => number;
   /** Soll/Ist aller Darbietungen (neueste zuletzt, max. 500) fürs Timing-Log. */
@@ -125,6 +127,21 @@ export function createTimingEngine(clock: Clock = browserClock): TimingEngine {
           show();
           resolve(t);
         });
+      });
+      return { done, cancel: () => clock.cancel(id) };
+    },
+
+    wait(ms) {
+      let id = 0;
+      const target = toFrames(ms, frameMs) * frameMs;
+      const done = new Promise<void>((resolve) => {
+        let start: number | null = null;
+        const tick = (t: number) => {
+          start ??= t;
+          if (t - start < target - frameMs / 2) return void (id = clock.raf(tick));
+          resolve();
+        };
+        id = clock.raf(tick);
       });
       return { done, cancel: () => clock.cancel(id) };
     },

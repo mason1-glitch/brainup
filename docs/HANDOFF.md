@@ -6,11 +6,11 @@
 - Schritt 2 fertig: Vite 8 + Svelte 5 + TypeScript 6 strict + Vitest laufen (`npm run dev`, `npm test`, `npm run build`). Datenmodell und Repository (`src/data/`), Spiel-Schnittstelle (`src/games/types.ts`), Tagesprogramm-Planung (`src/program/daily.ts`) stehen; Architektur in `docs/DECISIONS.md` D3–D7.
 - Schritt 3 fertig: Kernmodule in `src/core/` mit Tests – `timing` (rAF-Reizbeginn, Frame-Rundung, Soll/Ist-Protokoll), `staircase` (n-down-1-up, Schätzer trifft simulierte Schwelle über 100 Seeds auf ±10 %), `fraction` (exakte Brüche auf bigint), `srs` (Warteschlange für Rechenfehler), `rng` (seedbarer Zufall).
 - Schritt 4 fertig: Designsystem (`src/design/tokens.css`, `base.css`), Basiskomponenten in `src/ui/`, App-Shell mit Hash-Router und Tab-Leiste (`src/app/`), Seiten Heute/Spiele/Fortschritt/Einstellungen (`src/routes/`, die letzten beiden sind Platzhalter), Spiel-Host `src/routes/Play.svelte`, Styleguide unter `#/dev/styleguide`.
-- Noch keine Spiele (`src/games/registry.ts` ist leer).
+- Schritt 5a fertig: Mentale Rotation (`src/games/rotation/`) mit Tutorial, Staircase über 12 Level, Tests (3000 Figuren auf Chiralität geprüft) und Playwright-Lauf im iPhone-Viewport (`npm run e2e`, WebKit, gegen den Produktions-Build).
 
-**Nächster Schritt:** Fable, Schritt 5a (Mentale Rotation) – nachdem der Nutzer das Design gesehen hat.
+**Nächster Schritt:** Fable, Schritt 5b (UFOV-Spiel).
 
-**Ansehen:** `npm run dev` → http://localhost:5173/brainup/#/dev/styleguide · auf dem iPhone im selben WLAN: `npm run dev:phone` und die angezeigte „Network“-Adresse + `/brainup/#/dev/styleguide` öffnen.
+**Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · Styleguide unter `#/dev/styleguide` · auf dem iPhone im selben WLAN: `npm run dev:phone` und die angezeigte „Network“-Adresse + `/brainup/` öffnen.
 
 ## Aufgaben
 
@@ -50,3 +50,5 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`, sofern hier ni
 - Vitest zeigt `console.log` bestandener Tests nicht an (Reporter `dot`); zum Debuggen `npx vitest run <datei> --reporter=verbose`.
 - Die Dev-URL braucht den Pfad `/brainup/` (wegen `base`); `http://localhost:5173/` allein zeigt nur einen Hinweis von Vite.
 - `<meta name="theme-color">` folgt dem System-Schema, nicht der App-Einstellung „Hell/Dunkel“ – beim Bau der Einstellungen (Phase 4) per Skript nachziehen.
+- E2E: Der Bot erkennt die richtige Antwort an `data-correct`; das Attribut gibt es nur, wenn `window.__brainupE2E` gesetzt ist (`e2e/helpers.ts`, `src/games/e2e.ts`). Einmalig `npx playwright install webkit` nötig.
+- Spieldesign-Durchsicht („Spiel oder Test?“, PLAN.md Phase 2) steht für die Referenzspiele noch aus: z. B. sichtbare Serie/Punkte während des Laufs.
