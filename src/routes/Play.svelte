@@ -2,6 +2,7 @@
   // Der Host: einziger Ablauf für jedes Spiel (D5).
   // Einstieg → (Tutorial) → Countdown → Lauf → Speichern → Ergebnis.
   import { navigate } from '../app/router.svelte';
+  import { timing } from '../core/timing';
   import { repo } from '../data/repo';
   import type { Session, Summary, Trial } from '../data/types';
   import { findGame } from '../games/registry';
@@ -44,6 +45,8 @@
 
   async function load() {
     if (!game) return;
+    // Bildrate einmal messen, bevor Reize gezeigt werden.
+    void timing.calibrate();
     const rec = await repo.loadGameState(game.id);
     if (!rec || rec.state === null) difficulty = game.initialState();
     else if (rec.stateVersion === game.stateVersion) difficulty = rec.state;
