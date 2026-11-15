@@ -19,7 +19,7 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | --- | --- | --- | --- | --- |
 | Mentale Rotation | `rotation` | Training | räumliches Vorstellen: Drehen im Kopf | vorhanden |
 | Blickfeld | `ufov` | Training | Verarbeitungsgeschwindigkeit, geteilte Aufmerksamkeit | vorhanden |
-| Papierfalten | `paperfold` | Training | räumliches Vorstellen: Falten und Entfalten | geplant |
+| Papierfalten | `paperfold` | Training | räumliches Vorstellen: Falten und Entfalten | vorhanden |
 | Schnittansichten | `sections` | Training | räumliches Vorstellen: Körper und Schnittflächen | geplant |
 | Kopfrechnen | `arithmetic` | Kopfrechnen | Rechenfertigkeit und Tempo | vorhanden |
 | Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | geplant |
@@ -48,7 +48,7 @@ Die IDs stehen später in gespeicherten Daten – nach dem ersten Release nicht 
 - **Kurzzeile:** Mitte erkennen, Rand orten – in Sekundenbruchteilen
 - **Beschreibung:** Kurz blitzt eine Form in der Mitte auf, ab Stufe 2 zugleich ein Punkt am Rand. Tippe danach an, welche Form es war und wo der Punkt lag. Je besser du wirst, desto kürzer die Darbietung.
 
-### Papierfalten · `paperfold` (geplant)
+### Papierfalten · `paperfold`
 
 - **Fordert:** Ein Blatt wird ein- bis dreimal gefaltet und gelocht; im Kopf entfalten und das Lochmuster bestimmen. Adaptiv über Zahl und Art der Faltungen (gerade, diagonal) und Zahl der Löcher.
 - **Quelle:** Aufgabentyp des Paper Folding Test aus [K] (dort dem Faktor Visualisierung zugeordnet); Trainierbarkeit räumlicher Fähigkeiten [U].

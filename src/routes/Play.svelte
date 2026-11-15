@@ -201,6 +201,10 @@
     display: grid;
     gap: var(--s-2);
   }
+  /* Wie der Spielrahmen genau bildschirmhoch: Tutorials passen sich ein, statt zu scrollen. */
+  .tutorial {
+    height: 100dvh;
+  }
   .tutorial-body {
     flex: 1;
     min-height: 0;

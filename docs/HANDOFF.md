@@ -2,7 +2,7 @@
 
 ## Stand
 
-Das Fundament (Fable, Runde 1) liegt in `main` (PR #3). Fable arbeitet in **Runde 2** auf dem Branch **`fable-2`** die Teile ab, die am meisten Sorgfalt brauchen (Liste unten); den Rest übernimmt danach Opus.
+Das Fundament (Fable, Runde 1) liegt in `main` (PR #3). Fable arbeitet in **Runde 2** (Branches `fable-2`, danach **`fable-3`**) die Teile ab, die am meisten Sorgfalt brauchen (Liste unten); den Rest übernimmt danach Opus.
 
 - **Gerüst:** Vite 8, Svelte 5 (Runes), TypeScript 6 strict, Vitest, Dexie, Playwright.
 - **Kernmodule** (`src/core/`, alle getestet): `timing`, `staircase`, `fraction`, `srs`, `rng`.
@@ -13,12 +13,13 @@ Das Fundament (Fable, Runde 1) liegt in `main` (PR #3). Fable arbeitet in **Rund
   - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
   - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
   - `arithmetic` – Kopfrechnen (zehn Typen × zehn Level, Sprint-Modus)
+- **Papierfalten** (`paperfold`): viertes Spiel, nach der Vorlage gebaut – taugt als Muster für Aufgaben mit vier Antwortbildern (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`.
 - **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele.
-- **Abnahme zuletzt:** `npm test` (75 Tests), `npm run build`, `npm run e2e` (7 Läufe im iPhone-Viewport, ≈ 4 min) grün.
+- **Abnahme zuletzt:** `npm test` (87 Tests), `npm run build`, `npm run e2e` (8 Läufe im iPhone-Viewport, ≈ 4 min) grün.
 
-**Nächster Schritt:** Warten auf den Merge des Pull Requests von `fable-2`; danach Fable, Runde 2, Schritt 4 (Papierfalten) auf einem neuen Branch von `main`.
+**Nächster Schritt:** Fable, Runde 2, Schritt 5 (Schnittansichten) auf dem Branch `fable-3`. Der Pull Request #4 (`fable-2` → `main`, Schritte 1–3) war beim Start von Schritt 4 noch nicht gemergt; `fable-3` baut auf `fable-2` auf und wird nach dem Merge auf `main` umgehängt.
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`.
 
@@ -30,14 +31,14 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`. Regeln und Def
 
 Übergabe-Gerüst · Gerüst und Architektur (D3–D7) · Kernmodule · Designsystem, App-Shell, Styleguide (D8) · Referenzspiele Rotation, UFOV, Kopfrechnen-Kern + Sprint · Vorlage für neue Spiele · Übergabe (D9–D12).
 
-### Fable – Runde 2 (Branch `fable-2`)
+### Fable – Runde 2 (Schritte 1–3 auf `fable-2`, ab Schritt 4 auf `fable-3`)
 
 Bricht Fable ab, macht Opus hier beim ersten offenen Punkt weiter.
 
 - [x] **1. Offene Prüfpunkte der drei Spiele** (Ergebnis siehe „Runde 2, Schritt 1“ unten).
 - [x] **2. PWA und Deploy** (D13): `vite-plugin-pwa` mit Manifest und Icons, alles im Precache; Workflow `.github/workflows/ci.yml`; `e2e/offline.spec.ts` prüft Manifest, Icons und einen kompletten Spiellauf ohne Netz.
 - [x] **3. Phase 0:** `docs/GAMES.md` angelegt (fünf Aufwärm-Spiele ausgewählt, Einträge für alle vorhandenen und geplanten Spiele, geprüfte Quellen). App-Texte abgeglichen; `src/games/registry.test.ts` erzwingt die wörtliche Übereinstimmung. **Pull Request nach `main` gestellt – der Nutzer sieht sich die Auswahl an.** Nach dem Merge auf neuem Branch von `main` weiter mit Schritt 4.
-- [ ] **4. Papierfalten** (`training`) per `/neues-spiel`: prozedurale Faltungen und Lochungen; richtige Antwort im Test auf anderem Rechenweg nachgerechnet; Distraktoren garantiert falsch und verschieden.
+- [x] **4. Papierfalten** (`paperfold`, Bereich `training`): prozedurale Faltungen (gerade und diagonal, 1–3) und Lochungen, zehn Level; Lösung im Test durch Vorwärtsfalten jedes Blattpunkts unabhängig nachgerechnet; Distraktoren per Konstruktion falsch und verschieden; Auflösung zeigt die Löcher in jedem Faltschritt.
 - [ ] **5. Schnittansichten** (`training`) per `/neues-spiel`: prozedurale Körper und Schnittebenen; Querschnitt exakt berechnet und unabhängig geprüft; Distraktoren garantiert falsch und verschieden; leichtgewichtige Darstellung wie bei der Rotation.
 - [ ] **6. Tagesprogramm durchspielbar** (D6): `planDaily` (`src/program/daily.ts`), die Typen `ProgramRun`/`ProgramStep` und `repo.putProgramRun`/`programRunsOfDay` stehen. Es fehlen: Start auf „Heute“, Anlegen/Fortsetzen des `ProgramRun` am selben Tag, im Host der Sprung zum nächsten Schritt (`Play.svelte` bekommt `programRunId` schon und beschriftet den Button mit „Weiter“, navigiert aber noch zu `/spiele`), `recent` aus den letzten Sitzungen ableiten, Playwright-Lauf durch das ganze Programm.
 - [ ] **7. Übergabe vervollständigen**, Pull Request nach `main` (nicht selbst mergen).
@@ -63,6 +64,14 @@ Bricht Fable ab, macht Opus hier beim ersten offenen Punkt weiter.
   - Rotation: Auf hohen Leveln kam die Schwierigkeit aus unlesbaren Ansichten (Figur verdeckt sich selbst, winzig dargestellt), nicht aus der Drehung. Jetzt verwirft `makeTrial` Ansichten, die `isLegible` nicht bestehen (kein Würfel ganz verdeckt, ≥ 85 % der Messpunkte sichtbar), und `Board` schneidet jede Figur passend zu (`frameOf`, alle drei im selben Maßstab).
   - Blickfeld: Man sah nicht, worum man spielt. Die aktuelle Darbietungszeit steht jetzt neben dem Fortschritt („12 / 30 · 83 ms“).
   - Kopfrechnen: Punkte liefen unsichtbar mit. Sie stehen jetzt neben der Restzeit („140 P · 42 s“).
+
+## Runde 2, Schritt 4 – Papierfalten, was man wissen muss
+
+- **Modell** (`paperfold/logic.ts`): Blatt 16 × 16, Faltlinien nur auf dem 4er-Raster (gerade und diagonal). Lochungen liegen auf `LATTICE` (64 Punkte), das unter allen Faltungen in sich übergeht und keine Faltlinie berührt – deshalb gibt es nie ein Loch auf einer Kante und alle Koordinaten bleiben ganzzahlig. Wer Faltlinien oder Lochpositionen ändert, muss beides zusammen ändern (Test „Lochgitter“).
+- **Zwei Rechenwege:** Der Generator entfaltet rückwärts über Lagen-Vielecke (`trace`/`unfold`); der Test faltet jeden ganzzahligen Blattpunkt vorwärts (`foldPoint` in `logic.test.ts`, eigene Spiegelformeln). Die beiden dürfen nie zusammengelegt werden.
+- **Distraktoren:** typische Denkfehler (eine Faltung nur halb mitgedacht, Muster falsch gespiegelt, ab Level 6 ein Loch versetzt); Vergleich über `keyOf`.
+- **Tutorial-Bildschirm:** `Play.svelte` begrenzt Tutorials jetzt auf die Bildschirmhöhe (`height: 100dvh`), damit sie sich einpassen statt zu scrollen. Ein neues Tutorial braucht also einen Teil mit `flex: 1; min-height: 0`.
+- **Ansehen:** Playwrights iPhone-15-Profil hat 393 × 659 Pixel (Safari mit Leisten), nicht 852 – Layouts müssen in 659 passen.
 
 ## Was Fable nicht geprüft hat
 
