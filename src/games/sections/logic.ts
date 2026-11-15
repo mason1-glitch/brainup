@@ -283,6 +283,18 @@ export function planesOf(s: Solid, kind: PlaneKind): Plane[] {
   return planes;
 }
 
+const shapeCache = new Map<string, P2[][]>();
+
+/** Alle gut lesbaren Schnittformen eines Körpers (jede Lage der Ebene) – Vorrat für falsche Antworten. */
+function shapesOf(s: Solid): P2[][] {
+  let shapes = shapeCache.get(s.id);
+  if (!shapes) {
+    shapes = (['axis', 'tilted', 'oblique'] as const).flatMap((kind) => planesOf(s, kind)).map((p) => shapeOf(s, p)!);
+    shapeCache.set(s.id, shapes);
+  }
+  return shapes;
+}
+
 // ---------- Durchgänge ----------
 
 export interface SectionsTrial {
@@ -325,7 +337,7 @@ const DISTORTIONS: [number, number, number][] = [
  * gestreckt oder geschert (so sieht sie im schrägen Bild aus).
  */
 function distractors(rng: Rng, s: Solid, answer: P2[], subtle: boolean): P2[][] {
-  const others = (['axis', 'tilted', 'oblique'] as const).flatMap((kind) => planesOf(s, kind)).map((p) => shapeOf(s, p)!);
+  const others = shapesOf(s);
   const warped = DISTORTIONS.map(([along, across, shear]) => distort(answer, along, across, shear));
   const sameCount = others.filter((o) => o.length === answer.length);
   const pool = subtle

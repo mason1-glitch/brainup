@@ -43,7 +43,7 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`. Regeln und Def
 - [x] **4. Papierfalten** (`paperfold`).
 - [x] **5. Schnittansichten** (`sections`).
 - [x] **6. Tagesprogramm durchspielbar** (D14): `src/program/run.ts`, „Heute“, Host, `e2e/program.spec.ts`.
-- [x] **7. Übergabe vervollständigt, Pull Request nach `main` gestellt** (vollständiger lokaler E2E-Lauf nach Schritt 6 lief beim Commit noch; die CI des Pull Requests zeigt das Ergebnis).
+- [x] **7. Übergabe vervollständigt, Pull Request #5 (`fable-3` → `main`) gestellt.**
 
 ### Opus – offen
 
@@ -103,6 +103,7 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`. Regeln und Def
 - GitHub Pages liegt unter `/brainup/`: Vite `base`, Manifest `start_url` und `scope` kommen aus derselben Konstante in `vite.config.ts`. Die Dev-URL braucht den Pfad ebenfalls – `http://localhost:5173/` allein zeigt nur einen Hinweis.
 - Service Worker: nur im Produktions-Build (`npm run build`/`preview`, E2E), nicht im Dev-Server. Eine neue Version erscheint erst beim **übernächsten** Öffnen der App (erstes Öffnen lädt sie im Hintergrund, D13) – beim Prüfen eines Deploys also zweimal laden. Neue Dateitypen (Schriften, Audio) müssen in `workbox.globPatterns` ergänzt werden, sonst fehlen sie offline; der Offline-E2E-Lauf deckt nur ab, was er wirklich aufruft.
 - Deploy: läuft im Job `deploy` von `ci.yml` nur bei Push auf `main` und nur nach grünem Testjob. Pages-Source ist auf „GitHub Actions“ gestellt. Icons nach Änderung von `public/icons/icon.svg` mit `node scripts/make-icons.mjs` neu erzeugen und committen.
+- CI ist etwa viermal langsamer als der Mac: Ein Test mit 3 s lokal riss dort das 5-Sekunden-Limit von Vitest (`testTimeout` steht deshalb auf 20 s). Aufgabengeneratoren schnell halten – teure Vorräte wie `shapesOf` in `sections/logic.ts` einmal berechnen und cachen. Nach jedem Push das CI-Ergebnis ansehen (`gh run list --branch <branch>`), nicht nur lokal prüfen.
 - Vor `npm run e2e` immer `npm run check`: Scheitert die Typprüfung, meldet Playwright nur „webServer was not able to start“. Tests laufen in Node ohne `@types/node` – Dateien liest man per `import text from '…?raw'`, nicht mit `node:fs`.
 - Playwright: lokal einmalig `npx playwright install webkit`, in CI `npx playwright install --with-deps webkit`. `npm run e2e` startet selbst Build + Preview auf Port 4173 und dauert ≈ 5 min: Der Blickfeld-Lauf bis Stufe 3 (90 echte Durchgänge) und der Lauf durchs Tagesprogramm brauchen je etwa 2,5 min.
 - Playwrights iPhone-15-Profil hat 393 × 659 Pixel (Safari mit Leisten), nicht 852 – Layouts müssen in 659 passen. Spielrahmen und Tutorial-Bildschirm sind genau bildschirmhoch (`Play.svelte`: `height: 100dvh`); ein Tutorial braucht deshalb einen Teil mit `flex: 1; min-height: 0`, der schrumpfen darf.
