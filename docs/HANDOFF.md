@@ -13,13 +13,14 @@ Das Fundament (Fable, Runde 1) liegt in `main` (PR #3). Fable arbeitet in **Rund
   - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
   - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
   - `arithmetic` – Kopfrechnen (zehn Typen × zehn Level, Sprint-Modus)
+- **Schnittansichten** (`sections`): fünftes Spiel; Körper als Schrägbild mit eingezeichnetem Schnitt, Antworten als Vielecke in wahrer Ansicht.
 - **Papierfalten** (`paperfold`): viertes Spiel, nach der Vorlage gebaut – taugt als Muster für Aufgaben mit vier Antwortbildern (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`.
 - **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele.
-- **Abnahme zuletzt:** `npm test` (87 Tests), `npm run build`, `npm run e2e` (8 Läufe im iPhone-Viewport, ≈ 4 min) grün.
+- **Abnahme zuletzt:** `npm test` (98 Tests), `npm run build`, `npm run e2e` (9 Läufe im iPhone-Viewport, ≈ 4 min) grün.
 
-**Nächster Schritt:** Fable, Runde 2, Schritt 5 (Schnittansichten) auf dem Branch `fable-3`. Der Pull Request #4 (`fable-2` → `main`, Schritte 1–3) war beim Start von Schritt 4 noch nicht gemergt; `fable-3` baut auf `fable-2` auf und wird nach dem Merge auf `main` umgehängt.
+**Nächster Schritt:** Fable, Runde 2, Schritt 6 (Tagesprogramm durchspielbar) auf dem Branch `fable-3`. Der Pull Request #4 (`fable-2` → `main`, Schritte 1–3) war zuletzt noch nicht gemergt; `fable-3` baut auf `fable-2` auf.
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`.
 
@@ -39,7 +40,7 @@ Bricht Fable ab, macht Opus hier beim ersten offenen Punkt weiter.
 - [x] **2. PWA und Deploy** (D13): `vite-plugin-pwa` mit Manifest und Icons, alles im Precache; Workflow `.github/workflows/ci.yml`; `e2e/offline.spec.ts` prüft Manifest, Icons und einen kompletten Spiellauf ohne Netz.
 - [x] **3. Phase 0:** `docs/GAMES.md` angelegt (fünf Aufwärm-Spiele ausgewählt, Einträge für alle vorhandenen und geplanten Spiele, geprüfte Quellen). App-Texte abgeglichen; `src/games/registry.test.ts` erzwingt die wörtliche Übereinstimmung. **Pull Request nach `main` gestellt – der Nutzer sieht sich die Auswahl an.** Nach dem Merge auf neuem Branch von `main` weiter mit Schritt 4.
 - [x] **4. Papierfalten** (`paperfold`, Bereich `training`): prozedurale Faltungen (gerade und diagonal, 1–3) und Lochungen, zehn Level; Lösung im Test durch Vorwärtsfalten jedes Blattpunkts unabhängig nachgerechnet; Distraktoren per Konstruktion falsch und verschieden; Auflösung zeigt die Löcher in jedem Faltschritt.
-- [ ] **5. Schnittansichten** (`training`) per `/neues-spiel`: prozedurale Körper und Schnittebenen; Querschnitt exakt berechnet und unabhängig geprüft; Distraktoren garantiert falsch und verschieden; leichtgewichtige Darstellung wie bei der Rotation.
+- [x] **5. Schnittansichten** (`sections`, Bereich `training`): neun konvexe Körper, Ebenen achsparallel/gekippt/schräg, acht Level; Schnitt ganzzahlig entschieden und im Test per Halbraum-Beschneidung unabhängig nachgerechnet; Distraktoren mit Mindestabstand in der Form; Schrägbild als SVG.
 - [ ] **6. Tagesprogramm durchspielbar** (D6): `planDaily` (`src/program/daily.ts`), die Typen `ProgramRun`/`ProgramStep` und `repo.putProgramRun`/`programRunsOfDay` stehen. Es fehlen: Start auf „Heute“, Anlegen/Fortsetzen des `ProgramRun` am selben Tag, im Host der Sprung zum nächsten Schritt (`Play.svelte` bekommt `programRunId` schon und beschriftet den Button mit „Weiter“, navigiert aber noch zu `/spiele`), `recent` aus den letzten Sitzungen ableiten, Playwright-Lauf durch das ganze Programm.
 - [ ] **7. Übergabe vervollständigen**, Pull Request nach `main` (nicht selbst mergen).
 
@@ -72,6 +73,15 @@ Bricht Fable ab, macht Opus hier beim ersten offenen Punkt weiter.
 - **Distraktoren:** typische Denkfehler (eine Faltung nur halb mitgedacht, Muster falsch gespiegelt, ab Level 6 ein Loch versetzt); Vergleich über `keyOf`.
 - **Tutorial-Bildschirm:** `Play.svelte` begrenzt Tutorials jetzt auf die Bildschirmhöhe (`height: 100dvh`), damit sie sich einpassen statt zu scrollen. Ein neues Tutorial braucht also einen Teil mit `flex: 1; min-height: 0`.
 - **Ansehen:** Playwrights iPhone-15-Profil hat 393 × 659 Pixel (Safari mit Leisten), nicht 852 – Layouts müssen in 659 passen.
+
+## Runde 2, Schritt 5 – Schnittansichten, was man wissen muss
+
+- **Exaktheit** (`sections/logic.ts`): Körper haben ganzzahlige Ecken, Ebenen ganzzahlige Normalen und `d2` (doppelter Abstand, also halbe Schritte). `section()` entscheidet mit ganzen Zahlen, welche Kanten geschnitten werden und welche Ecken auf der Ebene liegen. Neue Körper deshalb nur mit ganzzahligen Ecken und konvex (der Test „Körper“ prüft Euler, Ebenheit, Konvexität, Orientierung).
+- **Zwei Rechenwege:** Generator = Kanten mit der Ebene schneiden; Test = großes Quadrat in der Ebene mit allen Flächen-Halbräumen beschneiden (`clipSection` in `logic.test.ts`), über alle Körper und gut 5000 Ebenen. Nicht zusammenlegen.
+- **Distraktoren:** andere Schnitte desselben Körpers und die Lösung gestreckt/geschert. Verglichen wird die Form ohne Lage, Größe, Drehung, Spiegelung (`dissimilarity`); jede falsche Form liegt mindestens `MIN_DIFFERENCE` von der Lösung und den anderen entfernt. Die Antworten werden in ihr Feld eingepasst – Größe ist also bewusst kein Merkmal.
+- **Lesbarkeit:** Nur Schnitte mit klarer Form (`isClearShape`: keine Mini-Kante, keine fast gestreckte Ecke), mindestens 40 % so breit wie der Körper (`MIN_SPAN`) und aus der gewählten Blickrichtung gut zu sehen (`isWellSeen`).
+- **Darstellung:** Der Körper nutzt die Tokens `--solid-lit`/`--solid-shade`, der Schnitt `--ink` (im dunklen Design also hell) – App-Texte deshalb nicht „dunkle Fläche“ nennen. Konvexe Körper brauchen keinen Maleralgorithmus: gezeichnet werden nur zugewandte Flächen.
+- **Nicht gemacht:** zusammengesetzte (nicht konvexe) Körper, Zylinder/Kegel. `section()` setzt Konvexität voraus.
 
 ## Was Fable nicht geprüft hat
 

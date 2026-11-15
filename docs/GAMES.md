@@ -20,7 +20,7 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | Mentale Rotation | `rotation` | Training | räumliches Vorstellen: Drehen im Kopf | vorhanden |
 | Blickfeld | `ufov` | Training | Verarbeitungsgeschwindigkeit, geteilte Aufmerksamkeit | vorhanden |
 | Papierfalten | `paperfold` | Training | räumliches Vorstellen: Falten und Entfalten | vorhanden |
-| Schnittansichten | `sections` | Training | räumliches Vorstellen: Körper und Schnittflächen | geplant |
+| Schnittansichten | `sections` | Training | räumliches Vorstellen: Körper und Schnittflächen | vorhanden |
 | Kopfrechnen | `arithmetic` | Kopfrechnen | Rechenfertigkeit und Tempo | vorhanden |
 | Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | geplant |
 | Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | geplant |
@@ -56,9 +56,9 @@ Die IDs stehen später in gespeicherten Daten – nach dem ersten Release nicht 
 - **Kurzzeile:** Falten, lochen, im Kopf wieder aufklappen
 - **Beschreibung:** Ein Blatt wird gefaltet und gelocht. Welches Lochmuster siehst du, wenn es wieder aufgeklappt ist? Tippe auf das richtige Blatt.
 
-### Schnittansichten · `sections` (geplant)
+### Schnittansichten · `sections`
 
-- **Fordert:** Ein Körper wird von einer Ebene geschnitten; die Form der Schnittfläche bestimmen. Adaptiv über Körper (Quader, Prisma, Pyramide, zusammengesetzt) und Lage der Ebene (parallel, senkrecht, schräg).
+- **Fordert:** Ein Körper wird von einer Ebene geschnitten; die Form der Schnittfläche bestimmen. Adaptiv über Körper (Quader, Prisma, Haus, Pyramide, Pyramidenstumpf, Tetraeder, Oktaeder), Lage der Ebene (parallel zu einer Seitenfläche, gekippt, ganz schräg) und Ähnlichkeit der falschen Antworten.
 - **Quelle:** Aufgabentyp nach [CH] („Inferring cross sections of 3D objects“); Trainierbarkeit räumlicher Fähigkeiten [U].
 - **Titel:** Schnittansichten
 - **Kurzzeile:** Körper durchschneiden – welche Fläche entsteht?
