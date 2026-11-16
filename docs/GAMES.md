@@ -26,7 +26,7 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | vorhanden |
 | Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | vorhanden |
 | N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | vorhanden |
-| Wechselspiel | `taskswitch` | Aufwärmen & Fokus | zwischen zwei Regeln umschalten | geplant (optional) |
+| Wechselspiel | `taskswitch` | Aufwärmen & Fokus | zwischen zwei Regeln umschalten | vorhanden |
 
 Die IDs stehen später in gespeicherten Daten – nach dem ersten Release nicht mehr ändern.
 
@@ -122,9 +122,9 @@ Kriterien aus PLAN.md: in 1–3 Minuten spielbar, adaptiv steigerbar, per Touch 
 - **Kurzzeile:** Aufwärm-Spiel: war das Feld vor n Schritten dasselbe?
 - **Beschreibung:** Aufwärm-Spiel. Ein Feld nach dem anderen leuchtet auf. Tippe auf „Treffer“, wenn das Feld dasselbe ist wie vor n Schritten. Triffst du sicher, steigt n.
 
-### Wechselspiel · `taskswitch` (geplant, optional)
+### Wechselspiel · `taskswitch`
 
-- **Fordert:** Je nach Hinweis eine von zwei Regeln auf dieselbe Zahl anwenden (gerade/ungerade oder kleiner/größer als 5) – zügig zwischen Regeln umschalten.
+- **Fordert:** Je nach Hinweis eine von zwei Regeln auf dieselbe Zahl anwenden (gerade/ungerade oder kleiner/größer als 5) – zügig zwischen Regeln umschalten. Adaptiv über das Antwortfenster (kürzer nach drei richtigen in Folge) und die Häufigkeit der Regelwechsel (25 bis 50 %).
 - **Quelle:** Aufgabenwechsel-Paradigma nach [RM].
 - **Titel:** Wechselspiel
 - **Kurzzeile:** Aufwärm-Spiel: zwei Regeln, schnell umschalten
