@@ -5,6 +5,7 @@
   import Settings from '../routes/Settings.svelte';
   import Today from '../routes/Today.svelte';
   import Styleguide from '../routes/dev/Styleguide.svelte';
+  import Timing from '../routes/dev/Timing.svelte';
   import { route } from './router.svelte';
   import { requestPersistence } from './storage';
   import TabBar from './TabBar.svelte';
@@ -22,6 +23,8 @@
   {/key}
 {:else if route.path === '/dev/styleguide'}
   <Styleguide />
+{:else if route.path === '/dev/timing'}
+  <Timing />
 {:else}
   <main>
     {#if route.path === '/spiele'}
