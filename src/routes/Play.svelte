@@ -4,9 +4,10 @@
   import { navigate } from '../app/router.svelte';
   import { timing } from '../core/timing';
   import { repo } from '../data/repo';
-  import type { Session, Summary, Trial } from '../data/types';
+  import type { ProgramRun, Session, Summary, Trial } from '../data/types';
   import { findGame } from '../games/registry';
   import type { TrialInput } from '../games/types';
+  import { completeStep, nextStep, stepPath } from '../program/run';
   import Button from '../ui/Button.svelte';
   import GameFrame from '../ui/GameFrame.svelte';
   import Icon from '../ui/Icon.svelte';
@@ -38,6 +39,10 @@
   let best = $state(false);
   let runKey = $state(0);
 
+  /** Durchlauf des Tagesprogramms, zu dem dieser Lauf gehört (D6). */
+  let run = $state.raw<ProgramRun | null>(null);
+  const stepNumber = $derived(run ? run.steps.findIndex((s) => s.gameId === id) + 1 : 0);
+
   let difficulty = $state.raw<unknown>(undefined);
   // Bewusst nicht reaktiv: gehören zu genau einem Lauf.
   let session: Session | null = null;
@@ -53,6 +58,7 @@
     else difficulty = game.migrateState?.(rec.state, rec.stateVersion) ?? game.initialState();
     tutorialDone = rec?.tutorialDone ?? false;
     level = game.level(difficulty);
+    if (programRunId) run = (await repo.getProgramRun(programRunId)) ?? null;
     phase = 'intro';
   }
   void load();
@@ -84,6 +90,11 @@
     best = earlier.length > 0 && earlier.every((s) => s.summary!.score < result.score);
     await repo.saveGameState(game.id, game.stateVersion, next);
     await repo.finishSession(session.id, result, true);
+    if (run) {
+      // Schritt des Tagesprogramms abhaken; nach dem letzten ist der Durchlauf beendet.
+      run = completeStep(run, game.id, session.id, Date.now());
+      await repo.putProgramRun(run);
+    }
     summary = result;
     phase = 'result';
   }
@@ -103,7 +114,14 @@
     else phase = 'intro';
   }
 
-  const leave = () => navigate('/spiele');
+  const leave = () => navigate(run ? '/' : '/spiele');
+
+  /** Nach dem Ergebnis: im Tagesprogramm zum nächsten offenen Schritt, sonst zurück. */
+  function onward() {
+    const next = run ? nextStep(run) : null;
+    if (run && next !== null) navigate(stepPath(run, next));
+    else leave();
+  }
 </script>
 
 {#if !game || !mode}
@@ -115,6 +133,7 @@
   <div class="screen">
     <button type="button" class="icon-btn" aria-label="Zurück" onclick={leave}><Icon name="back" /></button>
     <div class="intro">
+      {#if run && stepNumber > 0}<p class="label">Tagesprogramm · Schritt {stepNumber} von {run.steps.length}</p>{/if}
       <p class="label">Level {level}</p>
       <h1>{game.title}</h1>
       <p class="muted">{game.description}</p>
@@ -159,9 +178,9 @@
     title={game.title}
     {summary}
     {best}
-    primaryLabel={programRunId ? 'Weiter' : 'Fertig'}
-    onPrimary={leave}
-    onAgain={programRunId ? undefined : start}
+    primaryLabel={run && nextStep(run) !== null ? 'Weiter' : 'Fertig'}
+    onPrimary={onward}
+    onAgain={run ? undefined : start}
   />
 {/if}
 
@@ -200,6 +219,10 @@
   .actions {
     display: grid;
     gap: var(--s-2);
+  }
+  /* Wie der Spielrahmen genau bildschirmhoch: Tutorials passen sich ein, statt zu scrollen. */
+  .tutorial {
+    height: 100dvh;
   }
   .tutorial-body {
     flex: 1;

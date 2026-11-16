@@ -98,7 +98,7 @@ Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgesc
 | `npm run e2e` | Playwright (WebKit, iPhone-Viewport) gegen den Produktions-Build; einmalig vorher `npx playwright install webkit` |
 | `node scripts/make-icons.mjs` | PNG-Icons aus `public/icons/icon.svg` neu erzeugen (nur nach Änderung des SVG) |
 
-Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` · `#/dev/styleguide`.
+Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` (im Tagesprogramm mit `?mode=…&run=<durchlauf>`) · `#/dev/styleguide`.
 
 ### Ordnerstruktur
 
@@ -109,7 +109,7 @@ src/
   design/    tokens.css (alle Gestaltungswerte), base.css
   ui/        Basiskomponenten: Button, Card, Segmented, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Icon
   games/     types (GameDefinition), registry, metrics, e2e + je Spiel ein Ordner (logic, Run, Tutorial, index)
-  program/   Tagesprogramm (planDaily)
+  program/   Tagesprogramm: planDaily (Auswahl), run (Ablauf eines Durchlaufs)
   routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte
   app/       App.svelte (Shell), router, theme, TabBar
 e2e/         Playwright-Tests und helpers

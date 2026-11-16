@@ -50,4 +50,14 @@ describe('repo', () => {
     await repo.putReview({ ...base, key: 'c', due: 50, gameId: 'other' });
     expect((await repo.dueReviews('arithmetic', 200)).map((r) => r.key)).toEqual(['a']);
   });
+  it('Tagesprogramm: Durchlauf speichern, überschreiben, per ID und je Tag lesen', async () => {
+    const repo = fresh();
+    const run = { id: 'r1', day: '2026-11-15', startedAt: 1, finishedAt: null, steps: [{ gameId: 'rotation', mode: 'standard', sessionId: null }] };
+    await repo.putProgramRun(run);
+    await repo.putProgramRun({ ...run, id: 'r2', day: '2026-11-14' });
+    await repo.putProgramRun({ ...run, finishedAt: 9, steps: [{ ...run.steps[0]!, sessionId: 's1' }] });
+    expect(await repo.getProgramRun('r1')).toMatchObject({ finishedAt: 9, steps: [{ sessionId: 's1' }] });
+    expect(await repo.getProgramRun('nope')).toBeUndefined();
+    expect((await repo.programRunsOfDay('2026-11-15')).map((r) => r.id)).toEqual(['r1']);
+  });
 });

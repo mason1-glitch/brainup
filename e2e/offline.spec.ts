@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { drag } from './helpers';
+import { playRotation } from './helpers';
 
 test('PWA: Manifest passt zu GitHub Pages unter /brainup/ und alle Icons sind erreichbar', async ({ page, request }) => {
   await page.goto('./');
@@ -39,19 +39,7 @@ test('Offline: nach dem ersten Besuch lädt die App ohne Netz und ein Spiel läu
   // Direkt in ein Spiel einsteigen und neu laden – auch das ohne Netz.
   await page.goto('#/spiel/rotation');
   await page.reload();
-  await page.getByRole('button', { name: 'Kurz üben' }).click();
-  for (const name of ['Weiter', 'Verstanden']) {
-    await drag(page, 'rotate-area');
-    await page.getByRole('button', { name }).click();
-  }
-  for (const n of [1, 2]) {
-    await expect(page.getByText(`Übung ${n} von 2`)).toBeVisible();
-    await page.locator('[data-correct="true"]:enabled').click();
-  }
-  for (let i = 1; i <= 20; i++) {
-    await page.locator('.board.visible [data-correct="true"]:enabled').click();
-    await expect(page.getByText(`${i} / 20`)).toBeVisible();
-  }
+  await playRotation(page);
   await expect(page.getByTestId('result-headline')).toBeVisible();
   await expect(page.getByText('20 von 20')).toBeVisible();
 

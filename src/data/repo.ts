@@ -136,6 +136,10 @@ export function createRepo(db: BrainUpDB) {
       await db.programRuns.put(run);
     },
 
+    getProgramRun(id: string): Promise<ProgramRun | undefined> {
+      return db.programRuns.get(id);
+    },
+
     programRunsOfDay(day: string): Promise<ProgramRun[]> {
       return db.programRuns.where('day').equals(day).toArray();
     },

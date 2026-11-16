@@ -35,5 +35,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    // Die Property-Tests laufen in CI etwa viermal so lange wie lokal – Standard wären 5 s.
+    testTimeout: 20_000,
   },
 });
