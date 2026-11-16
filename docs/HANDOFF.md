@@ -2,7 +2,9 @@
 
 ## Stand
 
-Fable hat Runde 1 (Fundament, in `main` seit PR #3) und Runde 2 (Schritte 1–6 unten) abgeschlossen. Ab hier übernimmt **Opus** mit der Liste „Opus – offen“.
+Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR #3–#5) und live unter https://mason1-glitch.github.io/brainup/. Deploy am 16.11. geprüft: Live-Bundle = Stand von `main`, Service Worker aktiv, alle Spiele starten ohne Netz. Der Nutzer nutzt die App täglich als Home-Bildschirm-App auf seinem iPhone.
+
+**Wer arbeitet:** Fable, solange Kontingent da ist – an der ganzen Liste „Offen“, auch an den Spielen. Opus springt nur ein, wenn Fable nicht verfügbar ist, und macht beim ersten offenen Punkt weiter (CLAUDE.md, Übergaberegeln).
 
 - **Gerüst:** Vite 8, Svelte 5 (Runes), TypeScript 6 strict, Vitest, Dexie, Playwright.
 - **Kernmodule** (`src/core/`, alle getestet): `timing`, `staircase`, `fraction`, `srs`, `rng`.
@@ -21,43 +23,54 @@ Fable hat Runde 1 (Fundament, in `main` seit PR #3) und Runde 2 (Schritte 1–6 
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`. Für Aufgaben mit vier Antwortbildern sind `paperfold` und `sections` die Muster (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
 - **Abnahme zuletzt:** `npm test` (104 Tests), `npm run build`, `npm run e2e` (10 Läufe im iPhone-Viewport, ≈ 5 min) grün.
 
-**Branches und Pull Requests:** Schritte 1–3 liegen auf `fable-2` (PR #4), Schritte 4–7 auf `fable-3`, das auf `fable-2` aufbaut. PR #4 war bei Abschluss noch offen; der Pull Request von `fable-3` enthält deshalb alles ab Schritt 1. Der Nutzer mergt selbst. Nach dem Merge: neuer Branch von `main`.
+**Branches:** Alles bis PR #5 ist in `main`. Neue Arbeit auf einem Branch von `main`, Pull Request nach dem ersten erledigten Schritt (CLAUDE.md).
 
-**Nächster Schritt:** Opus – Aufwärm-Spiele (erster Punkt unter „Opus – offen“).
+**Nächster Schritt:** Punkt 1 unter „Offen“ (Daten sichern).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
 ## Aufgaben
 
-Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`. Regeln und Definition of Done stehen in `CLAUDE.md`.
+Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Commit (Definition of Done in `CLAUDE.md`, Abnahmekriterien in `docs/PLAN.md`). Bricht eine Sitzung ab, geht es beim ersten offenen Punkt weiter.
 
-### Fable – Runde 1, erledigt
+### Erledigt
 
-Übergabe-Gerüst · Gerüst und Architektur (D3–D7) · Kernmodule · Designsystem, App-Shell, Styleguide (D8) · Referenzspiele Rotation, UFOV, Kopfrechnen-Kern + Sprint · Vorlage für neue Spiele · Übergabe (D9–D12).
+- Runde 1: Übergabe-Gerüst · Gerüst und Architektur (D3–D7) · Kernmodule · Designsystem, App-Shell, Styleguide (D8) · Referenzspiele Rotation, Blickfeld, Kopfrechnen-Kern + Sprint · Vorlage für neue Spiele (D9–D12).
+- Runde 2: Prüfpunkte der Referenzspiele · PWA und Deploy (D13) · Phase 0 mit `docs/GAMES.md` · Papierfalten · Schnittansichten · Tagesprogramm (D14) · Übergabe.
 
-### Fable – Runde 2
+### Offen
 
-- [x] **1. Offene Prüfpunkte der drei Spiele** (Ergebnis unten).
-- [x] **2. PWA und Deploy** (D13): `vite-plugin-pwa`, Workflow `.github/workflows/ci.yml`, `e2e/offline.spec.ts`.
-- [x] **3. Phase 0:** `docs/GAMES.md`; `src/games/registry.test.ts` erzwingt, dass App-Texte wörtlich mit GAMES.md übereinstimmen.
-- [x] **4. Papierfalten** (`paperfold`).
-- [x] **5. Schnittansichten** (`sections`).
-- [x] **6. Tagesprogramm durchspielbar** (D14): `src/program/run.ts`, „Heute“, Host, `e2e/program.spec.ts`.
-- [x] **7. Übergabe vervollständigt, Pull Request #5 (`fable-3` → `main`) gestellt.**
+1. **Daten sichern** – zuerst, weil der Nutzer die App täglich nutzt und iOS den Speicher räumen kann.
+   - [ ] `navigator.storage.persist()` beim Start anfragen; Ergebnis in den Einstellungen anzeigen.
+   - [ ] JSON-Export und -Import aller Daten über `repo` (`exportAll`/`importAll` neu), mit `SCHEMA_VERSION`; ältere Exporte laufen beim Import durch dieselben Upgrade-Schritte (D4). Ersetzen oder Zusammenführen entscheiden und in `DECISIONS.md` begründen – Rohdaten dürfen nie still verloren gehen. Test „Export → Import → Export ist verlustfrei“ (Abnahmekriterium) und ein E2E-Lauf.
+   - [ ] Export muss in der Home-Bildschirm-App auf dem iPhone als Datei ankommen, Import eine Datei annehmen – einen Weg wählen, der in iOS-PWAs funktioniert. Dem Nutzer danach in drei Sätzen sagen, wie er es auf dem iPhone testet; nicht auf die Antwort warten.
+2. **Aufwärm-Spiele** per `/neues-spiel <id>` (Bereich `warmup`), je Spiel ein Schritt, in dieser Reihenfolge. IDs, Titel, Kurzzeile und Beschreibung wörtlich aus `docs/GAMES.md` (Test `registry.test.ts`; Kurzzeile und Beschreibung beginnen mit „Aufwärm-Spiel“). Jedes Spiel in 1–3 min spielbar, adaptiv über den Staircase, Aufgaben-Korrektheit unabhängig geprüft; Darbietung, Antwortfenster und Wartezeiten nur über die Timing-Engine, zeitbegrenzte Reize mit Soll/Ist in den Rohdaten wie bei `ufov`.
+   - [ ] `schulte` – Zahlensuche. Mit dem ersten Aufwärm-Spiel stellt `planDaily` Aufwärmen an den Anfang des Tagesprogramms: `e2e/program.spec.ts` (Reihenfolge und Schrittzahl stehen dort fest) und die Bots in `e2e/helpers.ts` anpassen.
+   - [ ] `corsi` – Blockfolge.
+   - [ ] `flanker` – Pfeilfokus.
+   - [ ] `nback` – N-Back.
+   - [ ] `taskswitch` – Wechselspiel.
+3. **Kopfrechnen ausbauen**
+   - [ ] Modi „Präzision“ (ohne Zeitdruck, feste Aufgabenzahl) und „Fehlertraining“ (fällige Aufgaben per Spaced Repetition, D11) in `arithmetic/index.ts` (`modes`); `arithmetic/Run.svelte` nach `mode.id` verzweigen. Bereit liegen `dueTasks()` (`reviews.ts`) und `pickDue()` (`core/srs.ts`); die Liste füllt der Sprint schon. Modus-IDs stehen danach in den Daten – vorher festlegen. Tests für die Auswahl fälliger Aufgaben, je Modus ein E2E-Lauf.
+   - [ ] Auswahl einzelner Rechenarten (bisher mischt der Sprint alle; `pickKind` nimmt schon eine Typliste).
+   - [ ] Rechentrick nach Fehlern, je Typ.
+4. **Messung**
+   - [ ] Timing-Log über 200 Durchgänge (Soll- gegen Ist-Dauer, Abnahmekriterium) als Playwright-Lauf mit Prüfung auf ±1 Frame, dazu eine Seite `#/dev/timing`, die dieselbe Messung auf dem iPhone des Nutzers ausführt und anzeigt.
+   - [ ] Pixel-Profil in `playwright.config.ts`, CI-Workflow anpassen (Chromium installieren). Wird die CI zu langsam, dürfen die langen Läufe (Blickfeld bis Stufe 3, Tagesprogramm) nur im iPhone-Profil laufen – begründen.
+5. **Phase 3 – Fortschritt**
+   - [ ] Verlauf je Spiel und je Rechentyp (`repo.sessionsOfGame`, `Session.summary`, `Trial.kind`), Bestwerte, Kalender (`Session.day`), Wochenziel (`ProgressRing`). Für neue Abfragen `repo` erweitern, nicht umgehen. Staircase-Schwellen streuen (D10) – Verläufe glätten.
+   - [ ] Einstufungslauf beim ersten Start: Startwerte der Staircases setzen.
+6. **Phase 4 – Rest**
+   - [ ] Einstellungen: Ton, Haptik, reduzierte Bewegung (`data-motion="reduced"` am `<html>`), Sitzungslänge, Umfang des Tagesprogramms (Einstellung `daily` in der Form `DailyConfig`, wird von „Heute“ schon gelesen).
+   - [ ] Erinnerung als `.ics`-Datei.
+7. **Qualität**
+   - [ ] Lighthouse CI (≥ 95 überall) und axe-core (0 schwere Verstöße) in GitHub Actions; Funde beheben, auch den schwachen Kontrast der Tippflächen im Blickfeld.
+8. **Phase 5 – Red Team** (PLAN.md)
+   - [ ] Als Spieletester, Messtechniker und Skeptiker angreifen, alle Funde beheben.
+9. **Abschluss**
+   - [ ] HANDOFF.md und DECISIONS.md auf den Endstand, Pull Request, dem Nutzer sagen, was er auf dem iPhone ansehen soll.
 
-### Opus – offen
-
-- [ ] **Aufwärm-Spiele** aus `docs/GAMES.md` einzeln per `/neues-spiel <id>` (Bereich `warmup`), in der dort empfohlenen Reihenfolge: `schulte`, `corsi`, `flanker`, `nback`, optional `taskswitch`. IDs, Titel, Kurzzeile und Beschreibung stehen in GAMES.md und müssen wörtlich übernommen werden (Test `registry.test.ts`; Aufwärm-Spiele beginnen Kurzzeile und Beschreibung mit „Aufwärm-Spiel“). Sobald es ein Aufwärm-Spiel gibt, stellt `planDaily` es automatisch an den Anfang des Tagesprogramms – dann `e2e/program.spec.ts` anpassen (Reihenfolge und Schrittzahl stehen dort fest).
-- [ ] **Kopfrechnen ausbauen:**
-  - Modi „Präzision“ (ohne Zeitdruck, feste Aufgabenzahl) und „Fehlertraining“ in `arithmetic/index.ts` (`modes`) ergänzen; `arithmetic/Run.svelte` nach `mode.id` verzweigen. Fürs Fehlertraining liegen `dueTasks()` (`reviews.ts`) und `pickDue()` (`core/srs.ts`) bereit; die Liste wird vom Sprint schon gefüllt.
-  - Auswahl einzelner Rechentypen (bisher mischt der Sprint alle; `pickKind` nimmt schon eine Typliste).
-  - Rechentrick nach Fehlern (optional, je Typ).
-- [ ] **Phase 3 – Fortschritt:** Verlauf je Spiel und je Rechentyp (`repo.sessionsOfGame`, `Session.summary`, `Trial.kind`), Bestwerte, Kalender (`Session.day`), Wochenziel (`ProgressRing`). Einstufungslauf beim ersten Start: Startwerte der Staircases setzen. Für neue Abfragen `repo` erweitern, nicht umgehen.
-- [ ] **Phase 4 – Rest:** Einstellungen (Ton, Haptik, reduzierte Bewegung → `data-motion="reduced"` am `<html>`, Sitzungslänge, Umfang des Tagesprogramms: Einstellung `daily` in der Form `DailyConfig`, wird von „Heute“ schon gelesen), JSON-Export/-Import (`repo.exportAll/importAll` neu, `SCHEMA_VERSION` mitschreiben; Test „verlustfrei“ ist Abnahmekriterium), `navigator.storage.persist()`, Erinnerung als `.ics`.
-- [ ] **Tests ausbauen:** Pixel-Profil in `playwright.config.ts`, Lighthouse CI, axe-core, Timing-Log über 200 Durchgänge.
-- [ ] **Phase 5 – Red Team.**
-
-## Was in Runde 2 geprüft und geändert wurde
+## Wissen aus Runde 2
 
 ### Schritt 1 – die drei Referenzspiele
 
@@ -90,13 +103,12 @@ Reihenfolge einhalten. Abnahmekriterien stehen in `docs/PLAN.md`. Regeln und Def
 - **Text auf „Heute“:** nennt nur die Bereiche, die im Plan wirklich vorkommen, und keine Dauer – solange es keine Aufwärm-Spiele gibt, steht dort „Training, Kopfrechnen“.
 - **Bots:** `e2e/helpers.ts` hat `playRotation`, `playUfov`, `playArithmetic` (fehlerfrei von der Einstiegsseite bis zum Ergebnis) – für neue Programm-Läufe ergänzen.
 
-## Was Fable nicht geprüft hat
+## Noch nicht geprüft
 
-- Kein Test auf einem echten iPhone; alle Läufe in Playwright-WebKit mit iPhone-15-Profil auf dem Mac.
-- Der Deploy auf GitHub Pages läuft erst nach dem Merge nach `main` zum ersten Mal; der Testjob des Workflows lief auf dem Branch grün.
+- Auf dem echten iPhone wurde nichts systematisch geprüft; der Nutzer spielt dort täglich, alle Testläufe liefen in Playwright-WebKit mit iPhone-15-Profil.
 - Barrierefreiheit wurde nicht mit axe geprüft. Die Tippflächen im Blickfeld (Antwortphase) haben einen schwachen Rand (`--line`) und erfüllen vermutlich nicht 3 : 1 Kontrast.
-- Papierfalten und Schnittansichten wurden vom Bot und in Screenshots geprüft, aber nicht von einem Menschen gespielt: Ob die Level gleichmäßig schwerer werden, zeigt erst das Spielen (Red Team).
-- Im Tutorial von Papierfalten und Schnittansichten sind die vier Antwortfelder auf kleinen Bildschirmen klein (der Erklärtext braucht Platz) – beim Red Team auf einem echten Gerät ansehen.
+- Papierfalten und Schnittansichten hat nur der Bot gespielt: Ob die Level gleichmäßig schwerer werden, zeigt erst das Spielen (Red Team).
+- Im Tutorial von Papierfalten und Schnittansichten sind die vier Antwortfelder auf kleinen Bildschirmen klein (der Erklärtext braucht Platz).
 
 ## Bekannte Fallstricke
 
