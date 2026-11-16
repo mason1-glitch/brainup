@@ -8,9 +8,9 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 
 - **Gerüst:** Vite 8, Svelte 5 (Runes), TypeScript 6 strict, Vitest, Dexie, Playwright.
 - **Kernmodule** (`src/core/`, alle getestet): `timing`, `staircase`, `fraction`, `srs`, `rng`.
-- **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang.
+- **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang, Sicherung als JSON-Datei (D15).
 - **Design** (`src/design/`, `src/ui/`): Tokens, Basiskomponenten, Styleguide unter `#/dev/styleguide`.
-- **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt und Einstellungen sind Platzhalter (Einstellungen kann nur Hell/Dunkel); Spiel-Host `Play.svelte`.
+- **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt ist ein Platzhalter; Einstellungen können Hell/Dunkel und die Datensicherung; Spiel-Host `Play.svelte`.
 - **Fünf Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
   - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
   - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
@@ -21,11 +21,11 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 - **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele (vom Nutzer bestätigt: „Passt so“).
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`. Für Aufgaben mit vier Antwortbildern sind `paperfold` und `sections` die Muster (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
-- **Abnahme zuletzt:** `npm test` (104 Tests), `npm run build`, `npm run e2e` (10 Läufe im iPhone-Viewport, ≈ 5 min) grün.
+- **Abnahme zuletzt:** `npm test` (115 Tests), `npm run build`, `npm run e2e` (14 Läufe im iPhone-Viewport, ≈ 5 min) grün.
 
 **Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 1, Export/Import).
+**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 2, `schulte`).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -42,8 +42,8 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 
 1. **Daten sichern** – zuerst, weil der Nutzer die App täglich nutzt und iOS den Speicher räumen kann.
    - [x] `navigator.storage.persist()` beim Start anfragen; Ergebnis in den Einstellungen anzeigen. (`src/app/storage.ts`, Karte „Daten“ in den Einstellungen, `e2e/settings.spec.ts`)
-   - [ ] JSON-Export und -Import aller Daten über `repo` (`exportAll`/`importAll` neu), mit `SCHEMA_VERSION`; ältere Exporte laufen beim Import durch dieselben Upgrade-Schritte (D4). Ersetzen oder Zusammenführen entscheiden und in `DECISIONS.md` begründen – Rohdaten dürfen nie still verloren gehen. Test „Export → Import → Export ist verlustfrei“ (Abnahmekriterium) und ein E2E-Lauf.
-   - [ ] Export muss in der Home-Bildschirm-App auf dem iPhone als Datei ankommen, Import eine Datei annehmen – einen Weg wählen, der in iOS-PWAs funktioniert. Dem Nutzer danach in drei Sätzen sagen, wie er es auf dem iPhone testet; nicht auf die Antwort warten.
+   - [x] JSON-Export und -Import aller Daten über `repo` (`exportAll`/`importAll`, `src/data/backup.ts`), mit `SCHEMA_VERSION`; der Import führt zusammen und löscht nie (D15). Tests in `src/data/backup.test.ts` (verlustfrei, zusammenführen, ablehnen, Upgrade einer älteren Sicherung).
+   - [x] Datei-Weg fürs iPhone: „Sicherung erstellen“ → „Datei speichern“ öffnet das Teilen-Menü (`navigator.share` mit Datei), sonst Download; „Sicherung einlesen“ nimmt eine Datei an (`src/app/backupFile.ts`, Karte „Daten“ in den Einstellungen, `e2e/backup.spec.ts`). **Auf dem echten iPhone noch nicht bestätigt** – dem Nutzer ist gesagt, wie er es testet.
 2. **Aufwärm-Spiele** per `/neues-spiel <id>` (Bereich `warmup`), je Spiel ein Schritt, in dieser Reihenfolge. IDs, Titel, Kurzzeile und Beschreibung wörtlich aus `docs/GAMES.md` (Test `registry.test.ts`; Kurzzeile und Beschreibung beginnen mit „Aufwärm-Spiel“). Jedes Spiel in 1–3 min spielbar, adaptiv über den Staircase, Aufgaben-Korrektheit unabhängig geprüft; Darbietung, Antwortfenster und Wartezeiten nur über die Timing-Engine, zeitbegrenzte Reize mit Soll/Ist in den Rohdaten wie bei `ufov`.
    - [ ] `schulte` – Zahlensuche. Mit dem ersten Aufwärm-Spiel stellt `planDaily` Aufwärmen an den Anfang des Tagesprogramms: `e2e/program.spec.ts` (Reihenfolge und Schrittzahl stehen dort fest) und die Bots in `e2e/helpers.ts` anpassen.
    - [ ] `corsi` – Blockfolge.
@@ -103,7 +103,19 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Text auf „Heute“:** nennt nur die Bereiche, die im Plan wirklich vorkommen, und keine Dauer – solange es keine Aufwärm-Spiele gibt, steht dort „Training, Kopfrechnen“.
 - **Bots:** `e2e/helpers.ts` hat `playRotation`, `playUfov`, `playArithmetic` (fehlerfrei von der Einstiegsseite bis zum Ergebnis) – für neue Programm-Läufe ergänzen.
 
+## Wissen aus Runde 3
+
+### Schritt 1 – Daten sichern
+
+- **Format:** `{ app: 'brainup', schemaVersion, exportedAt, tables: { trials, sessions, gameState, settings, reviews, programRuns } }`. Durchgänge ohne `id` (lokale laufende Nummer, nirgends referenziert) – wer `id` je als Verweis nutzt, muss den Export ändern.
+- **Neue Tabelle oder neues Feld:** Eine neue Tabelle in `exportAll` **und** in `importAll` (`backup.ts`) aufnehmen und die Regel fürs Zusammenführen in D15 ergänzen; der Test „exportiert alle Tabellen“ zählt sie von Hand auf. Bekommen Einstellungen oder Wiederholungen je einen Zeitstempel, kann dort „der neuere gilt“ eingeführt werden.
+- **Schemaänderung:** neuer Eintrag am Ende von `SCHEMA` in `db.ts` mit `upgrade`. Der Test „eine ältere Sicherung läuft … durch dieselben Upgrade-Schritte“ zeigt mit einer gedachten Version 2, dass alte Sicherungen dann von selbst mitwandern.
+- **Zwei Tipps beim Export sind Absicht** (Safari verlangt für das Teilen-Menü eine unmittelbare Nutzeraktion, D15) – nicht zu einem Knopf zusammenlegen.
+- **E2E:** Playwright-WebKit auf dem Mac kennt `navigator.canShare`, in der CI (Linux) nicht. `e2e/backup.spec.ts` legt deshalb in jedem Lauf fest, welcher Weg gilt (Download erzwingen oder `share` durch eine Attrappe ersetzen).
+
 ## Noch nicht geprüft
+
+- Sicherung auf dem echten iPhone: ob das Teilen-Menü die `.json`-Datei annimmt („In Dateien sichern“) und ob „Sicherung einlesen“ sie in der Dateien-App auswählen lässt. Meldet der Nutzer ein Problem: `accept` am Datei-Feld lockern bzw. den Dateityp der Sicherung auf `text/plain` stellen und erneut testen lassen.
 
 - Auf dem echten iPhone wurde nichts systematisch geprüft; der Nutzer spielt dort täglich, alle Testläufe liefen in Playwright-WebKit mit iPhone-15-Profil.
 - Barrierefreiheit wurde nicht mit axe geprüft. Die Tippflächen im Blickfeld (Antwortphase) haben einen schwachen Rand (`--line`) und erfüllen vermutlich nicht 3 : 1 Kontrast.

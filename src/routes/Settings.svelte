@@ -1,8 +1,12 @@
 <script lang="ts">
   // Design und Datensicherung; Ton, Haptik, Bewegung, Sitzungslänge folgen in Phase 4.
+  import { backupFile, canShare, saveFile } from '../app/backupFile';
   import { link } from '../app/router.svelte';
   import { requestPersistence, type Persistence } from '../app/storage';
   import { loadTheme, setTheme, type Theme } from '../app/theme';
+  import { BackupError } from '../data/backup';
+  import { repo } from '../data/repo';
+  import Button from '../ui/Button.svelte';
   import Card from '../ui/Card.svelte';
   import Segmented from '../ui/Segmented.svelte';
   import Page from './Page.svelte';
@@ -17,6 +21,34 @@
   };
   let persistence = $state<Persistence | null>(null);
   void requestPersistence().then((p) => (persistence = p));
+
+  const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const counts = (sessions: number, trials: number) =>
+    `${count(sessions, 'Sitzung', 'Sitzungen')}, ${count(trials, 'Durchgang', 'Durchgänge')}`;
+
+  /** Fertige Sicherung – erst erstellen, dann mit einem eigenen Tipp sichern (siehe `saveFile`). */
+  let file = $state.raw<File | null>(null);
+  let message = $state('');
+  let picker: HTMLInputElement;
+
+  async function prepare() {
+    const backup = await repo.exportAll();
+    file = backupFile(backup);
+    message = `Sicherung bereit: ${counts(backup.tables.sessions.length, backup.tables.trials.length)}.`;
+  }
+
+  async function restore() {
+    const picked = picker.files?.[0];
+    picker.value = '';
+    if (!picked) return;
+    file = null;
+    try {
+      const report = await repo.importAll(JSON.parse(await picked.text()));
+      message = `Eingelesen. Neu dazugekommen: ${counts(report.sessions, report.trials)}.`;
+    } catch (error) {
+      message = error instanceof BackupError ? error.message : 'Die Datei ist keine BrainUp-Sicherung.';
+    }
+  }
 </script>
 
 <Page title="Einstellungen">
@@ -41,6 +73,20 @@
     {#if persistence}
       <p class="note" data-testid="persistence" data-persistence={persistence}>{PERSISTENCE[persistence]}</p>
     {/if}
+    <div class="actions">
+      {#if file}
+        <Button block onclick={() => saveFile(file!)}>Datei speichern</Button>
+      {:else}
+        <Button variant="secondary" block onclick={prepare}>Sicherung erstellen</Button>
+      {/if}
+      <Button variant="secondary" block onclick={() => picker.click()}>Sicherung einlesen</Button>
+      <input bind:this={picker} type="file" accept="application/json,.json" hidden onchange={restore} data-testid="backup-file" />
+    </div>
+    <p class="note" role="status" data-testid="backup-message">{message}</p>
+    {#if file && canShare(file)}
+      <p class="muted note">Im Teilen-Menü „In Dateien sichern“ wählen.</p>
+    {/if}
+    <p class="muted note">Einlesen fügt hinzu und löscht nichts. Bei Spielständen gilt der neuere Stand.</p>
   </Card>
   {#if import.meta.env.DEV}
     <a class="muted" href={link('/dev/styleguide')}>Styleguide</a>
@@ -50,6 +96,14 @@
 <style>
   .control {
     margin-top: var(--s-4);
+  }
+  .actions {
+    display: grid;
+    gap: var(--s-3);
+    margin-top: var(--s-4);
+  }
+  .note:empty {
+    display: none;
   }
   .note {
     margin-top: var(--s-2);
