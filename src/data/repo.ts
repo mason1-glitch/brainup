@@ -1,6 +1,7 @@
 // Einziger Zugang zu den Daten. UI und Spiele importieren NUR `repo` aus dieser Datei,
 // nie Dexie oder `db.ts` direkt.
 import Dexie from 'dexie';
+import { exportAll, importAll, type Backup, type ImportReport } from './backup';
 import { BrainUpDB } from './db';
 import type {
   GameId,
@@ -142,6 +143,19 @@ export function createRepo(db: BrainUpDB) {
 
     programRunsOfDay(day: string): Promise<ProgramRun[]> {
       return db.programRuns.where('day').equals(day).toArray();
+    },
+
+    /** Alle Daten als JSON-fähiges Objekt (Sicherung). */
+    exportAll(now = Date.now()): Promise<Backup> {
+      return exportAll(db, now);
+    },
+
+    /**
+     * Führt eine Sicherung mit den vorhandenen Daten zusammen; gelöscht wird nichts (D15).
+     * Wirft `BackupError` (aus `backup.ts`), wenn die Datei nicht passt – dann bleibt alles unverändert.
+     */
+    importAll(data: unknown): Promise<ImportReport> {
+      return importAll(db, data);
     },
   };
 }
