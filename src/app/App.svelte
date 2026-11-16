@@ -6,10 +6,12 @@
   import Today from '../routes/Today.svelte';
   import Styleguide from '../routes/dev/Styleguide.svelte';
   import { route } from './router.svelte';
+  import { requestPersistence } from './storage';
   import TabBar from './TabBar.svelte';
   import { loadTheme } from './theme';
 
   void loadTheme();
+  void requestPersistence();
 
   const playId = $derived(route.path.startsWith('/spiel/') ? route.path.slice('/spiel/'.length) : null);
 </script>
