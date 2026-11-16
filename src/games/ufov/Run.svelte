@@ -19,6 +19,8 @@
   function next() {
     if (done >= total) return onFinish(advance(current));
     trial = makeTrial(Math.random, current, timing.quantize);
+    // Die Darbietungszeit steht sichtbar im Rahmen: Um sie wird gespielt.
+    onProgress(done / total, `${done} / ${total} · ${Math.round(trial.durationMs)} ms`);
     round++;
   }
 
@@ -36,7 +38,6 @@
     });
     current = { ...current, stair: updateStaircase(STAIRCASE, current.stair, r.correct) };
     done++;
-    onProgress(done / total, `${done} / ${total}`);
     next();
   }
 

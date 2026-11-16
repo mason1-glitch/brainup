@@ -146,6 +146,12 @@ function centroid(cells: readonly Vec[]): Vec {
 /**
  * Sichtbare Würfelflächen in Parallelprojektion, von hinten nach vorn sortiert
  * (Maleralgorithmus). Innenflächen und abgewandte Flächen entfallen.
+ *
+ * Die Sortierung nach der Tiefe des Flächenmittelpunkts ist hier exakt, nicht nur meist richtig:
+ * Verdeckt eine sichtbare Fläche von Würfel A eine sichtbare Fläche von Würfel B, dann liegt A auf
+ * keiner Achse hinter B und auf der Achse der verdeckten Fläche mindestens einen Würfel davor –
+ * der Mittelpunkt der verdeckenden Fläche ist also immer näher am Betrachter. Das gilt nur für
+ * Einheitswürfel auf einem Gitter in Parallelprojektion; der Test prüft es per Raycasting.
  */
 export function renderFaces(cells: readonly Vec[], view: Mat3): Face[] {
   const taken = new Set(cells.map((c) => c.join(',')));
@@ -170,6 +176,63 @@ export function renderFaces(cells: readonly Vec[], view: Mat3): Face[] {
       faces.push({ points, depth: apply(view, centre)[2], light: 0.25 + 0.75 * lit });
     }
   return faces.sort((a, b) => a.depth - b.depth);
+}
+
+/** Bildausschnitt einer Ansicht: Mitte und halbe Kantenlänge des kleinsten Quadrats um die Figur. */
+export function frameOf(cells: readonly Vec[], view: Mat3): { cx: number; cy: number; half: number } {
+  const points = renderFaces(cells, view).flatMap((f) => f.points);
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, half: Math.max(x1 - x0, y1 - y0) / 2 };
+}
+
+const SAMPLES = [[0, 0], [0.25, 0.25], [0.25, -0.25], [-0.25, 0.25], [-0.25, -0.25]] as const;
+
+/**
+ * Wie gut ist die Figur in dieser Ansicht zu lesen? Je dem Betrachter zugewandter Außenfläche fünf
+ * Messpunkte; ein Punkt ist sichtbar, wenn kein anderer Würfel davor liegt.
+ * `fraction` = Anteil sichtbarer Punkte, `hiddenCubes` = Würfel ganz ohne sichtbaren Punkt.
+ */
+export function visibility(cells: readonly Vec[], view: Mat3): { fraction: number; hiddenCubes: number } {
+  const taken = new Set(cells.map((c) => c.join(',')));
+  const toViewer: Vec = [view[6]!, view[7]!, view[8]!];
+  let total = 0;
+  let seen = 0;
+  let hiddenCubes = 0;
+  for (const c of cells) {
+    let seenHere = 0;
+    for (const d of FACE_DIRS) {
+      if (taken.has(`${c[0] + d[0]},${c[1] + d[1]},${c[2] + d[2]}`)) continue;
+      if (d[0] * toViewer[0] + d[1] * toViewer[1] + d[2] * toViewer[2] <= 1e-9) continue;
+      const [u, v] = AXES.filter((e) => e[0] * d[0] + e[1] * d[1] + e[2] * d[2] === 0) as [Vec, Vec];
+      for (const [a, b] of SAMPLES) {
+        const q: Vec = [0, 1, 2].map((i) => c[i]! + d[i]! / 2 + a * u[i]! + b * v[i]!) as unknown as Vec;
+        total++;
+        if (!cells.some((other) => other !== c && rayHitsCube(q, toViewer, other))) (seen++, seenHere++);
+      }
+    }
+    if (seenHere === 0) hiddenCubes++;
+  }
+  return { fraction: total === 0 ? 0 : seen / total, hiddenCubes };
+}
+
+/** Trifft der Strahl q + t·dir (t > 0) den Einheitswürfel um `cube`? */
+function rayHitsCube(q: Vec, dir: Vec, cube: Vec): boolean {
+  let enter = 0;
+  let exit = Infinity;
+  for (let i = 0; i < 3; i++) {
+    const lo = cube[i]! - 0.5 - q[i]!;
+    if (Math.abs(dir[i]!) < 1e-12) {
+      if (lo > 0 || lo + 1 < 0) return false;
+      continue;
+    }
+    const t1 = lo / dir[i]!;
+    const t2 = (lo + 1) / dir[i]!;
+    enter = Math.max(enter, Math.min(t1, t2));
+    exit = Math.min(exit, Math.max(t1, t2));
+  }
+  return exit > enter + 1e-9;
 }
 
 // ---------- Schwierigkeit und Durchgänge ----------
@@ -212,6 +275,18 @@ export const BASE_VIEW: Mat3 = mul(axisAngle([1, 0, 0], 24), axisAngle([0, 1, 0]
 /** Größter erlaubter z-Anteil einer Figurenachse (0,8 ≙ Arme behalten ≥ 60 % ihrer Länge im Bild). */
 export const MAX_TILT = 0.8;
 
+/** Mindestanteil sichtbarer Messpunkte (siehe `visibility`), damit eine Ansicht als lesbar gilt. */
+export const MIN_VISIBLE = 0.85;
+
+/**
+ * Lesbar = kein Würfel ganz verdeckt und die Figur verdeckt sich selbst nur wenig.
+ * Schwer soll die Drehung sein, nicht das Erraten verdeckter Teile.
+ */
+export function isLegible(cells: readonly Vec[], view: Mat3): boolean {
+  const v = visibility(cells, view);
+  return v.hiddenCubes === 0 && v.fraction >= MIN_VISIBLE;
+}
+
 export interface RotationTrial {
   level: number;
   cells: Vec[];
@@ -225,8 +300,8 @@ export interface RotationTrial {
   correct: 0 | 1;
 }
 
-function optionView(rng: Rng, p: ReturnType<typeof paramsFor>, ref: Mat3): { view: Mat3; angle: number } {
-  for (;;) {
+function optionView(rng: Rng, p: ReturnType<typeof paramsFor>, ref: Mat3, cells: readonly Vec[]): { view: Mat3; angle: number } | null {
+  for (let attempt = 0; attempt < 200; attempt++) {
     const z = 2 * rng() - 1;
     const phi = 2 * Math.PI * rng();
     const axis: Vec =
@@ -237,16 +312,23 @@ function optionView(rng: Rng, p: ReturnType<typeof paramsFor>, ref: Mat3): { vie
     const view = mul(axisAngle(axis, angle), ref);
     // Keine Figurenachse darf steil auf den Betrachter zeigen – sonst schrumpft ein Arm zum Punkt
     // und die Aufgabe wird mehrdeutig statt schwer.
-    if (Math.max(Math.abs(view[6]!), Math.abs(view[7]!), Math.abs(view[8]!)) < MAX_TILT) return { view, angle: Math.abs(angle) };
+    if (Math.max(Math.abs(view[6]!), Math.abs(view[7]!), Math.abs(view[8]!)) < MAX_TILT && isLegible(cells, view)) return { view, angle: Math.abs(angle) };
   }
+  return null;
 }
 
 export function makeTrial(rng: Rng, level: number): RotationTrial {
   const p = paramsFor(level);
   const cells = generateFigure(rng, p.arms);
-  const ref = mul(BASE_VIEW, pick(rng, ROTATIONS_24));
-  const same = optionView(rng, p, ref);
-  const other = optionView(rng, p, ref);
+  const flipped = mirror(cells);
+  // Das Vorbild muss für Figur und Spiegelbild lesbar sein: Drehungen in der Bildebene (Level 1–2)
+  // ändern die Verdeckung nicht, also wären sonst alle Antworten unlesbar.
+  const refs = ROTATIONS_24.map((r) => mul(BASE_VIEW, r)).filter((view) => isLegible(cells, view) && isLegible(flipped, view));
+  const ref = refs.length > 0 ? pick(rng, refs) : null;
+  const same = ref && optionView(rng, p, ref, cells);
+  const other = ref && optionView(rng, p, ref, flipped);
+  // Selten: Zu dieser Figur gibt es keine lesbaren Ansichten im Winkelbereich – dann eine neue Figur.
+  if (!ref || !same || !other) return makeTrial(rng, level);
   const correct = rng() < 0.5 ? 0 : 1;
   const [a, b] = correct === 0 ? [same, other] : [other, same];
   return { level: p.level, cells, ref, options: [a.view, b.view], angles: [a.angle, b.angle], correct };

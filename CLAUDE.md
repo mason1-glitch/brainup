@@ -96,6 +96,7 @@ Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgesc
 | `npm run check` | Typprüfung (svelte-check) |
 | `npm run build` | Typprüfung + Produktions-Build nach `dist/` |
 | `npm run e2e` | Playwright (WebKit, iPhone-Viewport) gegen den Produktions-Build; einmalig vorher `npx playwright install webkit` |
+| `node scripts/make-icons.mjs` | PNG-Icons aus `public/icons/icon.svg` neu erzeugen (nur nach Änderung des SVG) |
 
 Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` · `#/dev/styleguide`.
 
@@ -112,7 +113,10 @@ src/
   routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte
   app/       App.svelte (Shell), router, theme, TabBar
 e2e/         Playwright-Tests und helpers
-docs/        PLAN, HANDOFF, DECISIONS, ADDING_A_GAME, (GAMES)
+public/      Icons (werden unverändert ausgeliefert)
+scripts/     Hilfsskripte (make-icons)
+.github/     CI: Tests, Build, E2E bei jedem Push/PR; Deploy auf GitHub Pages bei Push auf main
+docs/        PLAN, HANDOFF, DECISIONS, ADDING_A_GAME, GAMES
 ```
 
 Abhängigkeiten zeigen nur nach unten: `routes` → `games`/`ui` → `core`/`data`. `core` importiert nichts aus anderen Ordnern.

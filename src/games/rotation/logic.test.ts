@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { seededRng } from '../../core/rng';
+import { pick, seededRng } from '../../core/rng';
 import type { Trial } from '../../data/types';
 import {
-  apply, axisAngle, BASE_VIEW, det, generateFigure, initialState, isChiral, makeTrial, MAX_LEVEL, MAX_TILT, mirror, mul,
-  paramsFor, renderFaces, ROTATIONS_24, shapeKey, summarize, type Mat3, type Vec,
+  apply, axisAngle, BASE_VIEW, det, frameOf, generateFigure, initialState, isChiral, isLegible, makeTrial, MAX_LEVEL, MAX_TILT,
+  MIN_VISIBLE, mirror, mul, paramsFor, renderFaces, ROTATIONS_24, shapeKey, summarize, visibility, type Mat3, type Vec,
 } from './logic';
 
 const round = (m: Mat3) => m.map((x) => Math.round(x));
@@ -79,11 +79,41 @@ describe('Durchgänge', () => {
         expect(t.angles[k]!).toBeGreaterThanOrEqual(p.minAngle);
         expect(t.angles[k]!).toBeLessThanOrEqual(p.maxAngle);
         expect(Math.max(...view.slice(6).map(Math.abs))).toBeLessThan(MAX_TILT);
+        // Lesbar: kein Würfel der gezeigten Figur (richtig = Figur, falsch = Spiegelbild) ist ganz verdeckt.
+        const shown = k === t.correct ? t.cells : mirror(t.cells);
+        expect(visibility(shown, view).hiddenCubes).toBe(0);
+        expect(visibility(shown, view).fraction).toBeGreaterThanOrEqual(MIN_VISIBLE);
         // Der tatsächliche Drehwinkel zwischen Vorbild und Antwort (aus der Spur) stimmt.
         const delta = mul(view, [t.ref[0]!, t.ref[3]!, t.ref[6]!, t.ref[1]!, t.ref[4]!, t.ref[7]!, t.ref[2]!, t.ref[5]!, t.ref[8]!]);
         const angle = (Math.acos(Math.min(1, Math.max(-1, (delta[0]! + delta[4]! + delta[8]! - 1) / 2))) * 180) / Math.PI;
         expect(angle).toBeCloseTo(t.angles[k]!, 6);
       }
+    }
+  });
+
+  it('Sichtbarkeit: frei stehende Figur ganz sichtbar, verdeckter Würfel wird erkannt', () => {
+    const row: Vec[] = [[0, 0, 0], [1, 0, 0], [2, 0, 0]];
+    expect(visibility(row, BASE_VIEW)).toEqual({ fraction: 1, hiddenCubes: 0 });
+    // Blick genau entlang der x-Achse auf zwei Würfel hintereinander: der hintere ist ganz verdeckt.
+    const along = axisAngle([0, 1, 0], 90);
+    const gap: Vec[] = [[0, 0, 0], [2, 0, 0]];
+    expect(visibility(gap, along)).toEqual({ fraction: 0.5, hiddenCubes: 1 });
+    expect(isLegible(gap, along)).toBe(false);
+    expect(isLegible(row, BASE_VIEW)).toBe(true);
+  });
+
+  it('Bildausschnitt umschließt alle Eckpunkte und ist so klein wie möglich', () => {
+    const rng = seededRng(3);
+    for (let i = 0; i < 50; i++) {
+      const t = makeTrial(rng, 1 + (i % MAX_LEVEL));
+      const f = frameOf(t.cells, t.ref);
+      const points = renderFaces(t.cells, t.ref).flatMap((face) => face.points);
+      for (const [x, y] of points) {
+        expect(Math.abs(x - f.cx)).toBeLessThanOrEqual(f.half + 1e-9);
+        expect(Math.abs(y - f.cy)).toBeLessThanOrEqual(f.half + 1e-9);
+      }
+      const reach = Math.max(...points.map(([x, y]) => Math.max(Math.abs(x - f.cx), Math.abs(y - f.cy))));
+      expect(reach).toBeCloseTo(f.half, 9);
     }
   });
 
@@ -121,7 +151,107 @@ describe('Darstellung', () => {
     expect(renderFaces(cells, BASE_VIEW).length).toBeGreaterThan(cells.length);
     expect(mirror(mirror(cells))).toEqual(cells);
   });
+
+  it('Maleralgorithmus: oberste Fläche stimmt an jedem Bildpunkt mit Raycasting überein – auch in ungünstigen Ansichten', () => {
+    const rng = seededRng(11);
+    const views: { cells: Vec[]; view: Mat3 }[] = [];
+    // (a) Ansichten, wie sie im Spiel vorkommen – Vorbild, beide Antworten, Figur und Spiegelbild.
+    for (let level = 1; level <= MAX_LEVEL; level++)
+      for (let n = 0; n < 15; n++) {
+        const t = makeTrial(rng, level);
+        views.push({ cells: t.cells, view: t.ref }, { cells: t.cells, view: t.options[0] }, { cells: mirror(t.cells), view: t.options[1] });
+      }
+    // (b) Ungünstig: Flächen fast genau von der Kante gesehen (Würfeldrehung plus winzige Verkippung)
+    //     und beliebige Drehungen ohne die Kipp-Grenze des Spiels.
+    for (let n = 0; n < 400; n++) {
+      const cells = generateFigure(rng, 3 + (n % 3));
+      const axis: Vec = [rng() - 0.5, rng() - 0.5, rng() - 0.5];
+      const tilt = [0.01, 0.3, 2, 8, 360 * rng()][n % 5]!;
+      views.push({ cells, view: mul(axisAngle(axis, tilt), pick(rng, ROTATIONS_24)) });
+    }
+
+    let checked = 0;
+    for (const { cells, view } of views) {
+      const faces = renderFaces(cells, view);
+      const r = Math.max(...faces.flatMap((f) => f.points.flat().map(Math.abs)));
+      for (let s = 0; s < 120; s++) {
+        const p: [number, number] = [(2 * rng() - 1) * r, (2 * rng() - 1) * r];
+        // Punkte direkt auf einer Kante sind nicht eindeutig – überspringen.
+        if (faces.some((f) => edgeDistance(f.points, p) < 1e-6)) continue;
+        const painted = faces.filter((f) => inside(f.points, p)).at(-1);
+        const expected = castRay(cells, view, p);
+        if (!expected) expect(painted).toBeUndefined();
+        else {
+          expect(painted).toBeDefined();
+          const cx = painted!.points.reduce((sum, q) => sum + q[0], 0) / 4;
+          const cy = painted!.points.reduce((sum, q) => sum + q[1], 0) / 4;
+          expect(cx).toBeCloseTo(expected[0], 9);
+          expect(cy).toBeCloseTo(-expected[1], 9);
+          expect(painted!.depth).toBeCloseTo(expected[2], 9);
+        }
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(90_000);
+  });
 });
+
+// ---------- Unabhängige Referenz für die Darstellung: Strahl-Würfel-Schnitt statt Tiefensortierung ----------
+
+const transpose = (m: Mat3): Mat3 => [m[0]!, m[3]!, m[6]!, m[1]!, m[4]!, m[7]!, m[2]!, m[5]!, m[8]!];
+
+/**
+ * Schickt einen Sehstrahl durch den Bildpunkt und liefert den Mittelpunkt (Betrachterkoordinaten)
+ * der Würfelfläche, die dem Betrachter am nächsten liegt – oder null, wenn der Strahl nichts trifft.
+ */
+function castRay(cells: readonly Vec[], view: Mat3, p: [number, number]): Vec | null {
+  const mid = [0, 1, 2].map((i) => cells.reduce((sum, c) => sum + c[i]!, 0) / cells.length);
+  const back = transpose(view);
+  const origin = apply(back, [p[0], -p[1], 0]);
+  const dir = apply(back, [0, 0, 1]);
+  let best: { z: number; centre: Vec } | null = null;
+  for (const c of cells) {
+    let enter = -Infinity;
+    let exit = Infinity;
+    let exitAxis = 0;
+    for (let i = 0; i < 3; i++) {
+      const lo = c[i]! - mid[i]! - 0.5 - origin[i]!;
+      if (Math.abs(dir[i]!) < 1e-12) {
+        if (lo > 0 || lo + 1 < 0) enter = Infinity;
+        continue;
+      }
+      const z1 = lo / dir[i]!;
+      const z2 = (lo + 1) / dir[i]!;
+      enter = Math.max(enter, Math.min(z1, z2));
+      if (Math.max(z1, z2) < exit) (exit = Math.max(z1, z2)), (exitAxis = i);
+    }
+    if (enter >= exit || (best && best.z >= exit)) continue;
+    const centre = [0, 1, 2].map((i) => c[i]! - mid[i]! + (i === exitAxis ? Math.sign(dir[i]!) / 2 : 0)) as unknown as Vec;
+    best = { z: exit, centre };
+  }
+  return best && apply(view, best.centre);
+}
+
+/** Liegt p im konvexen Viereck? (Vorzeichen aller Kantenkreuzprodukte gleich) */
+function inside(quad: [number, number][], p: [number, number]): boolean {
+  const signs = quad.map((a, i) => {
+    const b = quad[(i + 1) % 4]!;
+    return Math.sign((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]));
+  });
+  return signs.every((s) => s === signs[0]);
+}
+
+function edgeDistance(quad: [number, number][], p: [number, number]): number {
+  return Math.min(
+    ...quad.map((a, i) => {
+      const b = quad[(i + 1) % 4]!;
+      const [ex, ey] = [b[0] - a[0], b[1] - a[1]];
+      const len2 = ex * ex + ey * ey;
+      const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p[0] - a[0]) * ex + (p[1] - a[1]) * ey) / len2));
+      return Math.hypot(p[0] - a[0] - t * ex, p[1] - a[1] - t * ey);
+    }),
+  );
+}
 
 describe('Wertung', () => {
   it('Punkte = 10 × Level je richtiger Antwort', () => {

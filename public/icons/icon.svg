@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- App-Icon: ein Würfel wie in der Mentalen Rotation. Vollflächig, Motiv in der sicheren Zone (maskable). -->
+  <rect width="512" height="512" fill="#3f51d9"/>
+  <path d="M256 120 374 188 256 256 138 188Z" fill="#ffffff"/>
+  <path d="M138 188 256 256V392L138 324Z" fill="#c9cff6"/>
+  <path d="M374 188V324L256 392V256Z" fill="#8f9bec"/>
+</svg>

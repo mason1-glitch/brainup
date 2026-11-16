@@ -28,6 +28,10 @@
   --bad: light-dark(#c8463c, #f08a80);
   --bad-soft: light-dark(#f9e3e0, #3a1d1a);
 
+  /* Körper (Würfelfiguren): beleuchtete Flächen sind in beiden Schemata die helleren */
+  --solid-lit: light-dark(var(--surface), var(--accent));
+  --solid-shade: light-dark(var(--accent), var(--accent-soft));
+
   --shadow: light-dark(0 1px 2px rgb(20 20 30 / 0.04), 0 0 0 transparent),
     light-dark(0 8px 24px rgb(20 20 30 / 0.06), 0 0 0 transparent);
 

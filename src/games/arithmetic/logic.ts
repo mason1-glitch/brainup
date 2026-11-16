@@ -84,11 +84,13 @@ export function fromRecord(record: TaskRecord): Task {
   return { ...record, answer, expr: { op: 'value', args: [answer] } };
 }
 
+/** Punkte für eine richtige Antwort – schwerere Aufgaben zählen mehr. */
+export const pointsFor = (level: number): number => 10 * level;
+
 export function summarize(trials: Trial[], state: ArithmeticState): Summary {
   const base = baseMetrics(trials);
   const right = trials.filter((t) => t.correct);
-  // Schwerere Aufgaben zählen mehr.
-  const score = right.reduce((sum, t) => sum + 10 * t.difficulty, 0);
+  const score = right.reduce((sum, t) => sum + pointsFor(t.difficulty), 0);
   return {
     ...base,
     score,
