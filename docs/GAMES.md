@@ -24,7 +24,7 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | Kopfrechnen | `arithmetic` | Kopfrechnen | Rechenfertigkeit und Tempo | vorhanden |
 | Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | vorhanden |
 | Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | vorhanden |
-| Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | geplant |
+| Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | vorhanden |
 | N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | geplant |
 | Wechselspiel | `taskswitch` | Aufwärmen & Fokus | zwischen zwei Regeln umschalten | geplant (optional) |
 
@@ -106,9 +106,9 @@ Kriterien aus PLAN.md: in 1–3 Minuten spielbar, adaptiv steigerbar, per Touch 
 - **Kurzzeile:** Aufwärm-Spiel: Folge merken und nachtippen
 - **Beschreibung:** Aufwärm-Spiel. Felder leuchten nacheinander auf. Tippe sie danach in derselben Reihenfolge an. Nach jedem Erfolg wird die Folge länger.
 
-### Pfeilfokus · `flanker` (geplant)
+### Pfeilfokus · `flanker`
 
-- **Fordert:** Die Richtung des mittleren Pfeils angeben, während die Pfeile daneben teils in die Gegenrichtung zeigen – Ablenkung ausblenden unter Zeitdruck.
+- **Fordert:** Die Richtung des mittleren Pfeils angeben, während die Pfeile daneben teils in die Gegenrichtung zeigen – Ablenkung ausblenden unter Zeitdruck. Adaptiv über das Antwortfenster (kürzer nach drei richtigen in Folge) und den Anteil widersprüchlicher Reihen (40 bis 60 %).
 - **Quelle:** Flanker-Aufgabe nach [EE] (dort mit Buchstaben; die Pfeil-Variante ist eine spätere, verbreitete Abwandlung).
 - **Titel:** Pfeilfokus
 - **Kurzzeile:** Aufwärm-Spiel: nur der mittlere Pfeil zählt

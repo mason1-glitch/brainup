@@ -11,7 +11,7 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 - **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang, Sicherung als JSON-Datei (D15).
 - **Design** (`src/design/`, `src/ui/`): Tokens, Basiskomponenten, Styleguide unter `#/dev/styleguide`.
 - **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt ist ein Platzhalter; Einstellungen können Hell/Dunkel und die Datensicherung; Spiel-Host `Play.svelte`.
-- **Sieben Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
+- **Acht Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
   - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
   - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
   - `paperfold` – Papierfalten (Faltfolge, Lochung, vier Lochmuster)
@@ -19,15 +19,16 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
   - `arithmetic` – Kopfrechnen (zehn Typen × zehn Level, Sprint-Modus)
   - `schulte` – Zahlensuche (Aufwärm-Spiel: Tafel 3×3 bis 6×6, dann rückwärts und im Wechsel)
   - `corsi` – Blockfolge (Aufwärm-Spiel: Folge auf 4×4 Feldern merken; Länge adaptiv, Stufen schnell und rückwärts)
+  - `flanker` – Pfeilfokus (Aufwärm-Spiel: Richtung des mittleren Pfeils; Antwortfenster adaptiv)
 - **Tagesprogramm** (D6, D14): auf „Heute“ starten, im Host Schritt für Schritt spielen, am selben Tag fortsetzen.
 - **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele (vom Nutzer bestätigt: „Passt so“).
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`. Für Aufgaben mit vier Antwortbildern sind `paperfold` und `sections` die Muster (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
-- **Abnahme zuletzt:** `npm test` (129 Tests), `npm run build`, `npm run e2e` (16 Läufe im iPhone-Viewport, ≈ 5 min) grün.
+- **Abnahme zuletzt:** `npm test`, `npm run build`, `npm run e2e` (20 Läufe im iPhone-Viewport, ≈ 6 min) grün.
 
 **Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 2, `flanker`).
+**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 2, `nback`).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -49,7 +50,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 2. **Aufwärm-Spiele** per `/neues-spiel <id>` (Bereich `warmup`), je Spiel ein Schritt, in dieser Reihenfolge. IDs, Titel, Kurzzeile und Beschreibung wörtlich aus `docs/GAMES.md` (Test `registry.test.ts`; Kurzzeile und Beschreibung beginnen mit „Aufwärm-Spiel“). Jedes Spiel in 1–3 min spielbar, adaptiv über den Staircase, Aufgaben-Korrektheit unabhängig geprüft; Darbietung, Antwortfenster und Wartezeiten nur über die Timing-Engine, zeitbegrenzte Reize mit Soll/Ist in den Rohdaten wie bei `ufov`.
    - [x] `schulte` – Zahlensuche. Das Tagesprogramm beginnt jetzt mit einem Aufwärm-Spiel (4 Schritte); `e2e/program.spec.ts` und der Bot `playSchulte` in `e2e/helpers.ts` sind angepasst.
    - [x] `corsi` – Blockfolge.
-   - [ ] `flanker` – Pfeilfokus.
+   - [x] `flanker` – Pfeilfokus.
    - [ ] `nback` – N-Back.
    - [ ] `taskswitch` – Wechselspiel.
 3. **Kopfrechnen ausbauen**
@@ -155,6 +156,6 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - Staircase-Schwelle streut: ±10 % erst nach einigen hundert Durchgängen, eine Sitzung liegt bei etwa ±20 % (D10). Verläufe glätten, Bestwerte nicht auf einer einzelnen Schwellenschätzung aufbauen.
 - `<meta name="theme-color">` folgt dem System-Schema, nicht der App-Einstellung Hell/Dunkel.
 - iOS: Daten bleiben nur in der installierten Home-Bildschirm-App zuverlässig erhalten; Vibration ist im Browser kaum verfügbar.
-- Spiel-IDs (`rotation`, `ufov`, `paperfold`, `sections`, `arithmetic`, `schulte`, `corsi`) und Modus-IDs stehen in gespeicherten Daten – nicht umbenennen. Der Anzeigename darf sich ändern – dann in `docs/GAMES.md` **und** in `index.ts` des Spiels, sonst schlägt `registry.test.ts` fehl.
+- Spiel-IDs (`rotation`, `ufov`, `paperfold`, `sections`, `arithmetic`, `schulte`, `corsi`, `flanker`) und Modus-IDs stehen in gespeicherten Daten – nicht umbenennen. Der Anzeigename darf sich ändern – dann in `docs/GAMES.md` **und** in `index.ts` des Spiels, sonst schlägt `registry.test.ts` fehl.
 - Quellen in GAMES.md: nur nachgeschlagene Angaben (Crossref/PubMed), keine DOIs aus dem Gedächtnis. Aussagen über Studien stützen sich dort nur auf die Zusammenfassungen.
 - Ändert sich die Form eines Schwierigkeitszustands: `stateVersion` erhöhen und `migrateState` schreiben, sonst startet das Spiel für alle wieder bei Level 1.

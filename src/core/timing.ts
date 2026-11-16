@@ -63,8 +63,9 @@ export interface TimingEngine {
   /**
    * Reiz für `durationMs` (frame-gerundet) zeigen. `show` und `hide` laufen synchron im
    * rAF-Callback und müssen das DOM direkt ändern (in Svelte: Zustand setzen + `flushSync()`).
+   * `show` bekommt den Reizbeginn – für Reize, auf die schon während der Darbietung geantwortet wird.
    */
-  present: (durationMs: number, show: () => void, hide: () => void) => Handle<Presentation>;
+  present: (durationMs: number, show: (onset: number) => void, hide: () => void) => Handle<Presentation>;
   /** Reiz zeigen, der bis zur Antwort bleibt; liefert den Reizbeginn. */
   onset: (show: () => void) => Handle<number>;
   /** Frame-genaue Wartezeit (Rückmeldung, Pausen zwischen Durchgängen) – abbrechbar, anders als setTimeout. */
@@ -97,7 +98,7 @@ export function createTimingEngine(clock: Clock = browserClock): TimingEngine {
       const plannedMs = frames * frameMs;
       const done = new Promise<Presentation>((resolve) => {
         id = clock.raf((onset) => {
-          show();
+          show(onset);
           const tick = (t: number) => {
             // Halber Frame Toleranz: rAF-Zeitstempel schwanken leicht um das Raster.
             if (t - onset < plannedMs - frameMs / 2) return void (id = clock.raf(tick));

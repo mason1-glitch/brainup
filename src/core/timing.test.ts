@@ -88,6 +88,18 @@ describe('present', () => {
     expect(p.actualMs).toBeGreaterThan(p.plannedMs);
   });
 
+  it('show bekommt den Reizbeginn, der später im Protokoll steht – Antworten während der Darbietung sind messbar', async () => {
+    const c = fakeClock(1000 / 60, [0.3, -0.2, 0.1]);
+    const engine = createTimingEngine(c.clock);
+    let seen = -1;
+    const h = engine.present(100, (onset) => (seen = onset), () => {});
+    c.step();
+    expect(seen).toBeGreaterThan(0);
+    expect(engine.rt({ timeStamp: seen + 55.5 }, seen)).toBeCloseTo(55.5, 6);
+    await c.run(8);
+    expect((await h.done).onset).toBe(seen);
+  });
+
   it('cancel verhindert hide und Protokoll', () => {
     const c = fakeClock(1000 / 60);
     const engine = createTimingEngine(c.clock);
