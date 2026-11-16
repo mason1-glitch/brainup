@@ -46,6 +46,22 @@ export function outcomeOf(task: Task, correct: boolean, rtMs: number | null): Ou
 }
 
 /**
+ * Modus-IDs stehen in gespeicherten Sitzungen – nie umbenennen.
+ * sprint: 60 s, Tempo zählt · precision: feste Aufgabenzahl ohne Zeitdruck · review: Fehlertraining
+ * mit den fälligen Aufgaben der Wiederholungsliste.
+ */
+export type ModeId = 'sprint' | 'precision' | 'review';
+
+/**
+ * Wie eine Antwort im jeweiligen Modus zählt. Ohne Zeitdruck (precision) gibt es kein „langsam“:
+ * richtig ist richtig. Im Sprint und im Fehlertraining zählt das Tempo.
+ */
+export function outcomeIn(mode: ModeId, task: Task, correct: boolean, rtMs: number | null): Outcome {
+  if (mode === 'precision') return correct ? 'good' : 'wrong';
+  return outcomeOf(task, correct, rtMs);
+}
+
+/**
  * Schwierigkeit nach einer Antwort: falsch → leichter; richtig und zügig → zählt fürs Aufsteigen;
  * richtig, aber langsam → bleibt (erst wenn es flüssig geht, wird es schwerer).
  */

@@ -83,6 +83,8 @@
 
   async function onFinish(next: unknown) {
     if (!game || !session || !mode) return;
+    // Ein Lauf ohne einen einzigen Durchgang (z. B. Fehlertraining, wenn nichts fällig ist) ist kein Ergebnis.
+    if (trials.length === 0) return abort();
     difficulty = next;
     level = game.level(next);
     const result = game.summarize(trials, next);

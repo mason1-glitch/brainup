@@ -6,7 +6,8 @@ import { BrainUpDB } from '../../data/db';
 import { createRepo } from '../../data/repo';
 import type { Trial } from '../../data/types';
 import { answerInput, check, generate, KINDS } from './generators';
-import { applyAnswer, fromRecord, initialState, levelOf, levelOfKind, outcomeOf, pickKind, slowMs, summarize, toRecord } from './logic';
+import { arithmetic } from './index';
+import { applyAnswer, fromRecord, initialState, levelOf, levelOfKind, outcomeIn, outcomeOf, pickKind, slowMs, summarize, toRecord } from './logic';
 import { dueTasks, recordReview } from './reviews';
 
 describe('Adaptivität je Rechentyp', () => {
@@ -85,6 +86,57 @@ describe('Speicherform und Wiederholungen', () => {
       now += 30 * DAY;
     }
     expect((await dueTasks(repo, now)).map((t) => t.key)).toEqual([b.key]);
+  });
+});
+
+describe('Modi', () => {
+  it('die Modus-IDs stehen in gespeicherten Sitzungen und bleiben, wie sie sind', () => {
+    expect(arithmetic.modes.map((m) => m.id)).toEqual(['sprint', 'precision', 'review']);
+    expect(arithmetic.modes.map((m) => m.budget)).toEqual([{ seconds: 60 }, { trials: 15 }, { trials: 10 }]);
+  });
+
+  it('Präzision kennt kein „langsam“; Sprint und Fehlertraining werten das Tempo', () => {
+    const task = generate(seededRng(3), 'mul', 4);
+    const slow = slowMs('mul', 4) + 1;
+    expect(outcomeIn('precision', task, true, slow)).toBe('good');
+    expect(outcomeIn('precision', task, true, null)).toBe('good');
+    expect(outcomeIn('precision', task, false, 100)).toBe('wrong');
+    for (const mode of ['sprint', 'review'] as const) {
+      expect(outcomeIn(mode, task, true, slow)).toBe('slow');
+      expect(outcomeIn(mode, task, true, slow - 2)).toBe('good');
+      expect(outcomeIn(mode, task, false, 100)).toBe('wrong');
+    }
+  });
+
+  it('Fehlertraining: nur fällige Aufgaben dieses Spiels, die am längsten fälligen zuerst, höchstens so viele wie die Sitzung fasst', async () => {
+    const db = new BrainUpDB('arith-due');
+    const repo = createRepo(db);
+    const rng = seededRng(21);
+    const tasks = KINDS.map((kind) => generate(rng, kind, 3));
+    // Fälligkeit bewusst nicht in der Reihenfolge des Anlegens: Aufgabe i ist bei (7·i mod 10) + 1 Stunden fällig.
+    const HOUR = 60 * MINUTE;
+    const dueAt = (i: number) => (((7 * i) % 10) + 1) * HOUR;
+    for (const [i, task] of tasks.entries()) {
+      await repo.putReview({ key: task.key, gameId: 'arithmetic', kind: task.kind, task: toRecord(task), due: dueAt(i), intervalDays: 0, streak: 0, lapses: 1 });
+    }
+    await repo.putReview({ key: 'fremd', gameId: 'other', kind: 'x', task: null, due: 1, intervalDays: 0, streak: 0, lapses: 1 });
+
+    const byDue = tasks.map((t, i) => ({ key: t.key, due: dueAt(i) })).sort((a, b) => a.due - b.due).map((x) => x.key);
+    expect((await dueTasks(repo, 0)).map((t) => t.key)).toEqual([]);
+    expect((await dueTasks(repo, 4 * HOUR)).map((t) => t.key)).toEqual(byDue.slice(0, 4));
+    expect((await dueTasks(repo, 4 * HOUR - 1)).map((t) => t.key)).toEqual(byDue.slice(0, 3));
+    expect((await dueTasks(repo, DAY)).map((t) => t.key)).toEqual(byDue);
+    expect((await dueTasks(repo, DAY, 3)).map((t) => t.key)).toEqual(byDue.slice(0, 3));
+    // Jede geladene Aufgabe ist spielbar: Die gespeicherte Lösung wird als richtig erkannt.
+    for (const task of await dueTasks(repo, DAY)) expect(check(task, answerInput(task)), task.key).toBe(true);
+
+    // Nach der Antwort ist die Aufgabe in dieser Sitzung nicht mehr fällig – auch nicht nach einem Fehler.
+    const [first, second] = await dueTasks(repo, DAY, 2);
+    await recordReview(repo, first!, 'wrong', DAY);
+    await recordReview(repo, second!, 'good', DAY);
+    const left = (await dueTasks(repo, DAY + MINUTE)).map((t) => t.key);
+    expect(left).toEqual(byDue.slice(2));
+    expect((await dueTasks(repo, DAY + 10 * MINUTE)).map((t) => t.key)).toContain(first!.key);
   });
 });
 

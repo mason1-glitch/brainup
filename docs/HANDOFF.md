@@ -54,7 +54,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
    - [ ] `nback` – N-Back.
    - [ ] `taskswitch` – Wechselspiel.
 3. **Kopfrechnen ausbauen**
-   - [ ] Modi „Präzision“ (ohne Zeitdruck, feste Aufgabenzahl) und „Fehlertraining“ (fällige Aufgaben per Spaced Repetition, D11) in `arithmetic/index.ts` (`modes`); `arithmetic/Run.svelte` nach `mode.id` verzweigen. Bereit liegen `dueTasks()` (`reviews.ts`) und `pickDue()` (`core/srs.ts`); die Liste füllt der Sprint schon. Modus-IDs stehen danach in den Daten – vorher festlegen. Tests für die Auswahl fälliger Aufgaben, je Modus ein E2E-Lauf.
+   - [x] Modi „Präzision“ (`precision`, 15 Aufgaben ohne Uhr) und „Fehlertraining“ (`review`, bis zu 10 fällige Aufgaben der Wiederholungsliste) neben `sprint`. `arithmetic/Run.svelte` verzweigt nach `mode.id`; Tests in `arithmetic/logic.test.ts` („Modi“), je Modus ein E2E-Lauf in `e2e/arithmetic.spec.ts`.
    - [ ] Auswahl einzelner Rechenarten (bisher mischt der Sprint alle; `pickKind` nimmt schon eine Typliste).
    - [ ] Rechentrick nach Fehlern, je Typ.
 4. **Messung**
@@ -127,6 +127,14 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Pfeilfokus** (`flanker/logic.ts`): Der Staircase regelt das **Antwortfenster** (3-down-1-up, multiplikativ); die Reihe steht per `timing.present` genau so lange. Dafür übergibt `present` jetzt den Reizbeginn an `show(onset)` – so lässt sich schon während der Darbietung antworten und die Reaktionszeit messen. Läuft das Fenster ab, zählt der Durchgang als falsch (`response: null`, `rtMs: null`) und trägt Soll/Ist (`task.actualMs`, `task.frames`); bei beantworteten Durchgängen gibt es kein Ist, weil die Antwort die Darbietung beendet. `kind` = `stimmig`/`widerspruch`; daraus rechnet `summarize` „Ablenkung kostet“.
 - **E2E bei schrumpfendem Antwortfenster:** nie eine feste Zahl richtiger Antworten erwarten – in der CI verpasst der Bot Durchgänge. In einer Schleife spielen, bis das Ergebnis da ist, und die Rohdaten gegen ihre eigene Regel prüfen (`e2e/flanker.spec.ts`).
 - **Registry-Reihenfolge:** Neue Spiele hinten anhängen; die Reihenfolge innerhalb eines Bereichs entscheidet bei Gleichstand im Tagesprogramm (`planDaily`), und `e2e/program.spec.ts` legt die Abfolge fest.
+
+### Schritt 3 – Kopfrechnen
+
+- **Modi** (`ModeId` in `arithmetic/logic.ts`): `sprint`, `precision`, `review` – die IDs stehen in gespeicherten Sitzungen. `outcomeIn()` legt fest, wie eine Antwort je Modus zählt: Präzision kennt kein „langsam“; im Fehlertraining zählt das Tempo, aber die Level der Rechenarten bleiben unberührt (es sind alte Aufgaben).
+- **Fehlertraining:** lädt beim Start einmal die fälligen Aufgaben (`dueTasks(repo, jetzt, 10)`) – die Sitzung ist so lang wie diese Liste. Nach einer Pause kommt die verworfene Aufgabe wieder. Ist nichts fällig, zeigt der Lauf einen Hinweis mit „Zurück“.
+- **Host:** Ein Lauf, der ohne einen einzigen Durchgang endet, gilt als abgebrochen (`Play.svelte`, `onFinish`) – kein Ergebnisbildschirm, keine beendete Sitzung. Das gilt für alle Spiele.
+- **Wertung:** `summarize` kennt den Modus nicht (D5); „Punkte“ und „Richtig x von y“ gelten für alle drei. Bestwerte vergleicht der Host je Modus.
+- **E2E mit Fälligkeiten:** `page.clock.setFixedTime` stellt nur `Date.now()` fest; Bildtakt und Timing-Engine laufen weiter. So lässt sich „elf Minuten später“ prüfen (`e2e/arithmetic.spec.ts`).
 
 ## Noch nicht geprüft
 
