@@ -50,6 +50,21 @@ describe('repo', () => {
     await repo.putReview({ ...base, key: 'c', due: 50, gameId: 'other' });
     expect((await repo.dueReviews('arithmetic', 200)).map((r) => r.key)).toEqual(['a']);
   });
+  it('Sitzungen eines Zeitraums über alle Spiele; Durchgänge eines Spiels ab einem Zeitpunkt in Zeitfolge', async () => {
+    const repo = fresh();
+    const at = (day: number) => new Date(2026, 10, day, 12).getTime();
+    for (const [game, day] of [['a', 14], ['b', 15], ['a', 16], ['b', 17]] as const) await repo.startSession(game, 'm', null, at(day));
+    const days = (await repo.sessionsBetweenDays('2026-11-15', '2026-11-16')).map((s) => `${s.gameId}:${s.day}`).sort();
+    expect(days).toEqual(['a:2026-11-16', 'b:2026-11-15']);
+    expect(await repo.sessionsBetweenDays('2027-01-01', '2027-12-31')).toEqual([]);
+
+    const trial = (gameId: string, ts: number) => ({ sessionId: 's', gameId, kind: '', ts, task: null, response: null, rtMs: 1, correct: true, difficulty: 1 });
+    for (const [game, ts] of [['a', 30], ['b', 20], ['a', 10], ['a', 20]] as const) await repo.addTrial(trial(game, ts));
+    expect((await repo.trialsOfGame('a')).map((t) => t.ts)).toEqual([10, 20, 30]);
+    expect((await repo.trialsOfGame('a', 20)).map((t) => t.ts)).toEqual([20, 30]);
+    expect(await repo.trialsOfGame('c')).toEqual([]);
+  });
+
   it('Tagesprogramm: Durchlauf speichern, überschreiben, per ID und je Tag lesen', async () => {
     const repo = fresh();
     const run = { id: 'r1', day: '2026-11-15', startedAt: 1, finishedAt: null, steps: [{ gameId: 'rotation', mode: 'standard', sessionId: null }] };

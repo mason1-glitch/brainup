@@ -69,6 +69,16 @@ export function createRepo(db: BrainUpDB) {
         .toArray();
     },
 
+    /** Sitzungen aller Spiele mit Tag von `from` bis `to` (beide eingeschlossen). */
+    sessionsBetweenDays(from: string, to: string): Promise<Session[]> {
+      return db.sessions.where('day').between(from, to, true, true).toArray();
+    },
+
+    /** Durchgänge eines Spiels ab einem Zeitpunkt (Epoch-ms), in Zeitfolge. */
+    trialsOfGame(gameId: GameId, since = 0): Promise<Trial[]> {
+      return db.trials.where('[gameId+ts]').between([gameId, since], [gameId, Dexie.maxKey]).toArray();
+    },
+
     sessionsOfDay(day: string): Promise<Session[]> {
       return db.sessions.where('day').equals(day).toArray();
     },

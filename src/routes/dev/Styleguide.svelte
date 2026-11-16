@@ -10,6 +10,7 @@
   import Numpad from '../../ui/Numpad.svelte';
   import ProgressBar from '../../ui/ProgressBar.svelte';
   import ProgressRing from '../../ui/ProgressRing.svelte';
+  import Sparkline from '../../ui/Sparkline.svelte';
   import ResultScreen from '../../ui/ResultScreen.svelte';
   import Segmented from '../../ui/Segmented.svelte';
   import Switch from '../../ui/Switch.svelte';
@@ -182,6 +183,17 @@
             <ProgressBar value={progress} />
             <Button variant="secondary" onclick={() => (progress = progress >= 1 ? 0 : Math.min(1, progress + 0.2))}>Weiter</Button>
           </div>
+        </div>
+      </Card>
+    </section>
+
+    <section>
+      <h2 class="label">Verlaufslinie</h2>
+      <Card>
+        <div class="stack">
+          <Sparkline values={[1, 1.4, 2, 2.2, 3, 3.6, 4]} label="Steigend" />
+          <Sparkline values={[3, 2, 4.5, 2.5, 3.5, 2, 4]} label="Schwankend" />
+          <Sparkline values={[3]} label="Ein Wert" />
         </div>
       </Card>
     </section>
