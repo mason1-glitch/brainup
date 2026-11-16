@@ -12,6 +12,7 @@
     activeKinds,
     applyAnswer,
     KINDS_SETTING,
+    TRICKS_SETTING,
     levelOfKind,
     outcomeIn,
     pickKind,
@@ -22,6 +23,7 @@
   } from './logic';
   import { dueTasks, recordReview } from './reviews';
   import TaskPad from './TaskPad.svelte';
+  import { trickFor } from './tricks';
 
   let { state: initial, mode, paused, onTrial, onProgress, onFinish }: RunProps<ArithmeticState> = $props();
 
@@ -41,6 +43,8 @@
   let due: Task[] | null = null;
   /** Sprint und Präzision: die in den Einstellungen gewählten Rechenarten. */
   let kinds: readonly Kind[] = KINDS;
+  /** Rechentrick nach Fehlern (Einstellung) – nur in den Modi ohne Uhr. */
+  let tricks = false;
   /** Lädt einmal je Lauf, was vor der ersten Aufgabe feststehen muss. */
   let prepared: Promise<void> | null = null;
   /** Zählt jedes Fortsetzen und jede Pause: Nur das jüngste Fortsetzen stellt eine Aufgabe. */
@@ -52,6 +56,8 @@
   let feedback = $state<'good' | 'bad' | null>(null);
   /** Fehlertraining ohne fällige Aufgaben. */
   let nothingDue = $state(false);
+  /** Rechenweg zur eben falsch gelösten Aufgabe; solange er steht, wartet der Lauf auf „Weiter“. */
+  let trick = $state.raw<string[] | null>(null);
   let onset: number | null = null;
   let startedAt = 0;
   let pending: Handle<unknown> | null = null;
@@ -73,6 +79,7 @@
       previous = { kind, key: task.key };
     }
     feedback = null;
+    trick = null;
     visible = false;
     onset = null;
     count++;
@@ -102,6 +109,8 @@
     done++;
     progress();
     feedback = correct ? 'good' : 'bad';
+    trick = !correct && tricks ? trickFor(task) : null;
+    if (trick) return;
     // Im Sprint läuft die Uhr weiter: Fehler kosten Zeit, Raten lohnt nicht. Ohne Uhr bleibt die Lösung länger stehen.
     const h = timing.wait(correct ? 250 : totalMs === null ? 1800 : 1200);
     pending = h;
@@ -118,6 +127,7 @@
       } else {
         kinds = activeKinds(await repo.getSetting<unknown>(KINDS_SETTING, null));
       }
+      tricks = totalMs === null && (await repo.getSetting(TRICKS_SETTING, true));
     })();
     return prepared;
   }
@@ -171,7 +181,7 @@
   </div>
 {:else if task}
   {#key count}
-    <TaskPad {task} {visible} {feedback} onSubmit={submit} />
+    <TaskPad {task} {visible} {feedback} {trick} onContinue={next} onSubmit={submit} />
   {/key}
 {/if}
 

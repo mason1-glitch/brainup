@@ -1,6 +1,7 @@
 <script lang="ts">
   // Aufgabe + Eingabe + Zahlentastatur. Von allen Kopfrechen-Modi und vom Tutorial genutzt.
   // Für jede neue Aufgabe neu einhängen ({#key}), damit die Eingabe leer beginnt.
+  import Button from '../../ui/Button.svelte';
   import Numpad from '../../ui/Numpad.svelte';
   import { e2e } from '../e2e';
   import { answerInput, KIND_TITLES, solutionText, type Task } from './generators';
@@ -11,10 +12,13 @@
     visible?: boolean;
     /** Nach der Antwort: richtig oder falsch (dann erscheint die Lösung). */
     feedback?: 'good' | 'bad' | null;
+    /** Rechenweg nach einem Fehler; solange er steht, geht es erst mit „Weiter“ weiter. */
+    trick?: readonly string[] | null;
+    onContinue?: () => void;
     onSubmit: (input: string, timeStamp: number) => void;
   }
 
-  let { task, visible = true, feedback = null, onSubmit }: Props = $props();
+  let { task, visible = true, feedback = null, trick = null, onContinue, onSubmit }: Props = $props();
   let value = $state('');
 </script>
 
@@ -27,14 +31,28 @@
     </p>
     <p class="solution num" aria-live="polite">{feedback === 'bad' ? `Richtig: ${solutionText(task)}` : ' '}</p>
   </div>
-  <Numpad
-    bind:value
-    {onSubmit}
-    decimal={task.format === 'decimal'}
-    fraction={task.format === 'fraction'}
-    maxLength={12}
-    disabled={feedback !== null || !visible}
-  />
+  <div class="pad">
+    <div class="numpad" class:covered={trick !== null}>
+      <Numpad
+        bind:value
+        {onSubmit}
+        decimal={task.format === 'decimal'}
+        fraction={task.format === 'fraction'}
+        maxLength={12}
+        disabled={feedback !== null || !visible}
+      />
+    </div>
+    {#if trick}
+      <!-- Liegt über der Tastatur, damit die Aufgabe darüber nicht springt. -->
+      <div class="trick" data-testid="trick">
+        <p class="label">So geht es leichter</p>
+        <div class="lines">
+          {#each trick as line (line)}<p class="num">{line}</p>{/each}
+        </div>
+        <Button block onclick={onContinue}>Weiter</Button>
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -59,6 +77,35 @@
   }
   .visible {
     visibility: visible;
+  }
+  .pad {
+    display: grid;
+  }
+  .pad > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+  .covered {
+    visibility: hidden;
+  }
+  .trick {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    padding: var(--s-4);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--s-2);
+    font-size: var(--text-md);
+    line-height: var(--leading-tight);
+    overflow-wrap: anywhere;
   }
   .task {
     font-size: var(--text-2xl);

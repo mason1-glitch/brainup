@@ -5,7 +5,7 @@ import { classify, type Outcome } from '../../core/srs';
 import { initStaircase, updateStaircase, type StaircaseConfig, type StaircaseState } from '../../core/staircase';
 import type { Summary, Trial } from '../../data/types';
 import { baseMetrics } from '../metrics';
-import { KINDS, MAX_LEVEL, type Format, type Kind, type Task } from './generators';
+import { KINDS, MAX_LEVEL, type Format, type Kind, type Op, type Task } from './generators';
 
 /**
  * Je Rechentyp ein eigener Staircase über die Level 1–10. 2-down-1-up (≈ 71 %), weil im
@@ -80,6 +80,9 @@ export function activeKinds(stored: unknown): Kind[] {
   return chosen.length > 0 ? chosen : [...KINDS];
 }
 
+/** Einstellung (boolean, Standard an): nach Fehlern einen Rechentrick zeigen – in den Modi ohne Uhr. */
+export const TRICKS_SETTING = 'arithmetic.tricks';
+
 /** Nächster Rechentyp im gemischten Lauf – nie zweimal derselbe hintereinander. */
 export function pickKind(rng: Rng, previous?: Kind, kinds: readonly Kind[] = KINDS): Kind {
   const pool = kinds.length > 1 ? kinds.filter((k) => k !== previous) : kinds;
@@ -96,17 +99,21 @@ export interface TaskRecord {
   answer: string;
   format: Format;
   tolerance: number;
+  /** Rechenvorschrift (Zahlen als Bruch-Text) – für den Rechentrick; fehlt bei älteren Einträgen. */
+  expr?: { op: Op; args: string[] };
 }
 
 export function toRecord(task: Task): TaskRecord {
   const { kind, level, key, text, hint, format, tolerance } = task;
-  return { kind, level, key, text, hint, answer: formatFrac(task.answer), format, tolerance };
+  const expr = { op: task.expr.op, args: task.expr.args.map(formatFrac) };
+  return { kind, level, key, text, hint, answer: formatFrac(task.answer), format, tolerance, expr };
 }
 
 /** Gespeicherte Aufgabe wieder spielbar machen (Fehlertraining). */
 export function fromRecord(record: TaskRecord): Task {
   const answer = parseFrac(record.answer)!;
-  return { ...record, answer, expr: { op: 'value', args: [answer] } };
+  const expr = record.expr ? { op: record.expr.op, args: record.expr.args.map((a) => parseFrac(a)!) } : { op: 'value' as const, args: [answer] };
+  return { ...record, answer, expr };
 }
 
 /** Punkte für eine richtige Antwort – schwerere Aufgaben zählen mehr. */

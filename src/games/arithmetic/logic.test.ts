@@ -9,6 +9,7 @@ import { answerInput, check, generate, KINDS } from './generators';
 import { arithmetic } from './index';
 import { activeKinds, applyAnswer, fromRecord, initialState, levelOf, levelOfKind, outcomeIn, outcomeOf, pickKind, slowMs, summarize, toRecord } from './logic';
 import { dueTasks, recordReview } from './reviews';
+import { trickFor } from './tricks';
 
 describe('Adaptivität je Rechentyp', () => {
   const task = generate(seededRng(1), 'mul', 1);
@@ -66,6 +67,22 @@ describe('Speicherform und Wiederholungen', () => {
         expect(check(back, answerInput(task)), task.key).toBe(true);
         expect(back).toMatchObject({ key: task.key, text: task.text, hint: task.hint, format: task.format });
       }
+  });
+
+  it('die Rechenvorschrift übersteht das Speichern: Der Rechentrick ist danach derselbe; alte Einträge ohne sie bleiben spielbar', () => {
+    const rng = seededRng(31);
+    let withTrick = 0;
+    for (const kind of KINDS)
+      for (let level = 1; level <= 10; level++)
+        for (let i = 0; i < 20; i++) {
+          const task = generate(rng, kind, level);
+          const record = JSON.parse(JSON.stringify(toRecord(task)));
+          expect(trickFor(fromRecord(record)), task.key).toEqual(trickFor(task));
+          if (trickFor(task)) withTrick++;
+          const { expr: _expr, ...old } = record;
+          expect(check(fromRecord(old), answerInput(task)), task.key).toBe(true);
+        }
+    expect(withTrick).toBeGreaterThan(1200);
   });
 
   it('falsch → bald wieder fällig; gut beantwortet → später; gelernt → entfernt', async () => {

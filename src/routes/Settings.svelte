@@ -7,7 +7,7 @@
   import { BackupError } from '../data/backup';
   import { repo } from '../data/repo';
   import { KIND_TITLES, KINDS, type Kind } from '../games/arithmetic/generators';
-  import { activeKinds, KINDS_SETTING } from '../games/arithmetic/logic';
+  import { activeKinds, KINDS_SETTING, TRICKS_SETTING } from '../games/arithmetic/logic';
   import Button from '../ui/Button.svelte';
   import Card from '../ui/Card.svelte';
   import Segmented from '../ui/Segmented.svelte';
@@ -29,9 +29,14 @@
   let kinds = $state<Kind[]>([...KINDS]);
   void repo.getSetting<unknown>(KINDS_SETTING, null).then((stored) => (kinds = activeKinds(stored)));
 
+  let tricks = $state(true);
+  void repo.getSetting(TRICKS_SETTING, true).then((on) => (tricks = on));
+
   function toggleKind(kind: Kind, on: boolean) {
-    kinds = KINDS.filter((k) => (k === kind ? on : kinds.includes(k)));
-    void repo.setSetting(KINDS_SETTING, kinds);
+    // Gespeichert wird die einfache Liste – der reaktive Zustand selbst lässt sich nicht in die Datenbank legen.
+    const next = KINDS.filter((k) => (k === kind ? on : kinds.includes(k)));
+    kinds = next;
+    void repo.setSetting(KINDS_SETTING, next);
   }
 
   const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -93,6 +98,8 @@
         />
       {/each}
     </div>
+    <p class="muted note">Nach einem Fehler zeigt die App einen Rechenweg für genau diese Aufgabe – in der Präzision und im Fehlertraining, nicht im Sprint.</p>
+    <Switch label="Rechentrick nach Fehlern" bind:checked={tricks} onChange={(on) => repo.setSetting(TRICKS_SETTING, on)} />
   </Card>
   <Card>
     <h2>Daten</h2>
@@ -115,6 +122,7 @@
     {/if}
     <p class="muted note">Einlesen fügt hinzu und löscht nichts. Bei Spielständen gilt der neuere Stand.</p>
   </Card>
+  <a class="muted" href={link('/dev/timing')}>Timing-Messung</a>
   {#if import.meta.env.DEV}
     <a class="muted" href={link('/dev/styleguide')}>Styleguide</a>
   {/if}

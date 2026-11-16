@@ -100,19 +100,20 @@ Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgesc
 | `npm run e2e` | Playwright (WebKit, iPhone-Viewport) gegen den Produktions-Build; einmalig vorher `npx playwright install webkit` |
 | `node scripts/make-icons.mjs` | PNG-Icons aus `public/icons/icon.svg` neu erzeugen (nur nach Änderung des SVG) |
 
-Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` (im Tagesprogramm mit `?mode=…&run=<durchlauf>`) · `#/dev/styleguide`.
+Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` (im Tagesprogramm mit `?mode=…&run=<durchlauf>`) · `#/dev/styleguide` · `#/dev/timing` (Timing-Messung).
 
 ### Ordnerstruktur
 
 ```
 src/
-  core/      reine Kernmodule ohne DOM-Abhängigkeit der Logik: timing, staircase, fraction, srs, rng
+  core/      reine Kernmodule ohne DOM-Abhängigkeit der Logik: timing, timingReport, staircase, fraction, srs, rng
   data/      types (Datenmodell), db (Dexie-Schema), backup (Export/Import), repo (einziger Datenzugang)
   design/    tokens.css (alle Gestaltungswerte), base.css
-  ui/        Basiskomponenten: Button, Card, Segmented, Switch, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Icon
+  ui/        Basiskomponenten: Button, Card, Segmented, Switch, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Sparkline, Icon
   games/     types (GameDefinition), registry, metrics, e2e + je Spiel ein Ordner (logic, Run, Tutorial, index)
   program/   Tagesprogramm: planDaily (Auswahl), run (Ablauf eines Durchlaufs)
-  routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte
+  progress/  Fortschritt: stats (Wochenziel, Kalender, Verläufe, Bestwerte als reine Funktionen)
+  routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte, dev/Timing.svelte
   app/       App.svelte (Shell), router, theme, storage, backupFile, TabBar
 e2e/         Playwright-Tests und helpers
 public/      Icons (werden unverändert ausgeliefert)
@@ -121,7 +122,7 @@ scripts/     Hilfsskripte (make-icons)
 docs/        PLAN, HANDOFF, DECISIONS, ADDING_A_GAME, GAMES
 ```
 
-Abhängigkeiten zeigen nur nach unten: `routes` → `games`/`ui` → `core`/`data`. `core` importiert nichts aus anderen Ordnern.
+Abhängigkeiten zeigen nur nach unten: `routes` → `program`/`progress`/`games`/`ui` → `core`/`data`. `core` importiert nichts aus anderen Ordnern.
 
 ### Verbindliche Regeln
 

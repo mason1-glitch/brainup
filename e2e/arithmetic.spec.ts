@@ -80,6 +80,12 @@ async function solve(page: Page, wrong = false): Promise<string> {
   const answer = (await prompt!.getAttribute('data-answer'))!;
   const text = (await (await prompt!.$('.task'))!.innerText()).trim();
   await type(page, wrong ? '99999999' : answer);
+  if (wrong) {
+    // Ohne Uhr bleibt nach einem Fehler der Rechentrick stehen, bis man weitertippt – wenn es für die Aufgabe einen gibt.
+    const next = page.getByTestId('trick').getByRole('button', { name: 'Weiter' });
+    await Promise.race([prompt!.waitForElementState('hidden').catch(() => {}), next.waitFor().catch(() => {})]);
+    if (await next.isVisible()) await next.click();
+  }
   await prompt!.waitForElementState('hidden');
   return text;
 }
@@ -215,6 +221,8 @@ test('Kopfrechnen: In den Einstellungen gewählte Rechenarten gelten für den La
 
   await page.goto('#/spiel/arithmetic?mode=precision');
   await tutorial(page);
+  // Erst wenn der Lauf begonnen hat, steht die erste Aufgabe des Laufs da (vorher noch die letzte des Tutorials).
+  await expect(page.getByText('0 / 15')).toBeVisible();
   for (let i = 1; i <= 15; i++) await solve(page);
   await expect(page.getByTestId('result-headline')).toBeVisible();
   const kinds = await page.evaluate(
@@ -231,4 +239,47 @@ test('Kopfrechnen: In den Einstellungen gewählte Rechenarten gelten für den La
   expect(new Set(kinds)).toEqual(new Set(['table', 'percent']));
   // Bei zwei Rechenarten wechseln sie sich ab.
   for (let i = 1; i < kinds.length; i++) expect(kinds[i]).not.toBe(kinds[i - 1]);
+});
+
+test('Kopfrechnen: Nach einem Fehler erscheint ein Rechentrick – abschaltbar', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as Record<string, unknown>).__brainupE2E = true;
+  });
+  // Nur Multiplikation: Dort gibt es zu jeder Aufgabe einen Rechenweg.
+  await page.goto('#/einstellungen');
+  for (const name of ['Einmaleins', 'Addition', 'Subtraktion', 'Division', 'Prozent', 'Quadrate und Wurzeln', 'Brüche und Dezimalzahlen', 'Zehnerpotenzen', 'Überschlag']) {
+    await page.getByRole('switch', { name, exact: true }).click();
+  }
+  await expect(page.getByRole('switch', { name: 'Rechentrick nach Fehlern' })).toBeChecked();
+
+  await page.goto('#/spiel/arithmetic?mode=precision');
+  await tutorial(page);
+  await expect(page.getByText('0 / 15')).toBeVisible();
+  const task = (await page.locator('.prompt.visible .task').innerText()).trim();
+  const [a, b] = task.split(' × ').map(Number);
+  await type(page, '99999999');
+  const trick = page.getByTestId('trick');
+  await expect(trick).toBeVisible();
+  // Der Rechenweg gehört zu dieser Aufgabe und endet bei ihrem Ergebnis; die Tastatur ist so lange weg.
+  await expect(trick.locator('.lines')).toHaveText(new RegExp(`= ${a! * b!}$`));
+  await expect(page.getByText(`Richtig: ${a! * b!}`)).toBeVisible();
+  await expect(page.locator('.key[data-key="ok"]')).toBeHidden();
+  await expect(page.getByText('1 / 15')).toBeVisible();
+  await trick.getByRole('button', { name: 'Weiter' }).click();
+  await expect(trick).toHaveCount(0);
+  await expect(page.locator('.prompt.visible .task')).not.toHaveText(task);
+
+  // Abgeschaltet: Nach einem Fehler geht es von selbst weiter.
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await page.getByRole('button', { name: 'Beenden' }).click();
+  await page.goto('#/einstellungen');
+  await page.getByRole('switch', { name: 'Rechentrick nach Fehlern' }).click();
+  await expect(page.getByRole('switch', { name: 'Rechentrick nach Fehlern' })).not.toBeChecked();
+  await page.goto('#/spiel/arithmetic?mode=precision');
+  await page.getByRole('button', { name: 'Start' }).click();
+  const prompt = await page.locator('.prompt.visible').elementHandle();
+  await type(page, '99999999');
+  await prompt!.waitForElementState('hidden');
+  await expect(page.getByTestId('trick')).toHaveCount(0);
+  await expect(page.getByText('1 / 15')).toBeVisible();
 });

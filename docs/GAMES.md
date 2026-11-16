@@ -68,7 +68,7 @@ Die IDs stehen später in gespeicherten Daten – nach dem ersten Release nicht 
 
 ### Kopfrechnen · `arithmetic`
 
-- **Fordert:** Rechenfertigkeit unter Zeitdruck in zehn Rechenarten (Einmaleins bis 20 × 20, mehrstellig ±, ×, ÷, Prozent, Quadrate/Wurzeln, Brüche ↔ Dezimal, Zehnerpotenzen, Überschlag). Adaptiv je Rechenart.
+- **Fordert:** Rechenfertigkeit unter Zeitdruck in zehn Rechenarten (Einmaleins bis 20 × 20, mehrstellig ±, ×, ÷, Prozent, Quadrate/Wurzeln, Brüche ↔ Dezimal, Zehnerpotenzen, Überschlag). Adaptiv je Rechenart. Drei Modi: Sprint (60 Sekunden, Tempo zählt), Präzision (15 Aufgaben ohne Uhr) und Fehlertraining (falsche und langsame Aufgaben kommen in wachsenden Abständen wieder). Nach einem Fehler zeigt die App in den Modi ohne Uhr einen Rechenweg für die Aufgabe.
 - **Quelle:** keine nötig – geübt wird die Fertigkeit selbst.
 - **Titel:** Kopfrechnen
 - **Kurzzeile:** Zehn Rechenarten, die mit dir wachsen
