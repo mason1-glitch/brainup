@@ -75,6 +75,8 @@ test('Blockfolge: Tutorial, kompletter Lauf, Ergebnis, Timing', async ({ page })
 
   // Zustand bleibt erhalten: Das Tutorial wird nicht mehr erzwungen.
   await page.getByRole('button', { name: 'Fertig' }).click();
+  // Erst die Spieleliste abwarten: Chromium ist schnell genug, um den Hashwechsel zu überholen, bevor die Seite wechselt.
+  await expect(page.getByRole('heading', { name: 'Spiele' })).toBeVisible();
   await page.goto('#/spiel/corsi');
   await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
 });

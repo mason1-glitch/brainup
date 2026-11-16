@@ -69,7 +69,7 @@ interface StoredTrial {
   task: { position: number; back: number; target: boolean; onMs: number; actualMs: number; frames: number };
 }
 
-test('N-Back: Tutorial, zwei Blöcke, Ergebnis, Timing', async ({ page }) => {
+test('N-Back: Tutorial, zwei Blöcke, Ergebnis, Timing', { tag: '@lang' }, async ({ page }) => {
   test.setTimeout(240_000);
   await openGame(page, 'nback');
   let last = await tutorial(page, true);

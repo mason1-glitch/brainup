@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Abnahmekriterium aus PLAN.md: Timing-Log über 200 Darbietungen, Soll- gegen Ist-Dauer auf ±1 Frame.
-test('Timing-Messung: 200 Darbietungen liegen auf ±1 Frame an der Soll-Dauer', async ({ page }) => {
+test('Timing-Messung: 200 Darbietungen liegen auf ±1 Frame an der Soll-Dauer', { tag: '@lang' }, async ({ page }) => {
   test.setTimeout(180_000);
   await page.goto('#/einstellungen');
   await page.getByRole('link', { name: 'Timing-Messung' }).click();

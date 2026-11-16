@@ -26,8 +26,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npx playwright install --with-deps webkit
-      # Baut selbst (Typprüfung + Produktions-Build) und spielt gegen `vite preview`.
-      - run: npm run e2e
+      # Baut selbst (Typprüfung + Produktions-Build) und spielt gegen `vite preview`; nur das iPhone-Profil.
+      - run: npx playwright test --project=iphone
       - name: Playwright-Bericht bei Fehlern
         if: failure()
         uses: actions/upload-artifact@v7
@@ -42,10 +42,32 @@ jobs:
         with:
           path: dist
 
+  # Pixel-Profil (Chromium) parallel zum Job `test`.
+  pixel:
+    name: E2E Pixel (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=pixel
+      - name: Playwright-Bericht bei Fehlern
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-pixel
+          path: test-results
+          retention-days: 7
+
   deploy:
     name: Deploy auf GitHub Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: test
+    needs: [test, pixel]
     runs-on: ubuntu-latest
     permissions:
       pages: write

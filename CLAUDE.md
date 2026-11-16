@@ -97,7 +97,7 @@ Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgesc
 | `npx vitest run <pfad> --reporter=verbose` | einzelne Tests mit Details |
 | `npm run check` | Typprüfung (svelte-check) |
 | `npm run build` | Typprüfung + Produktions-Build nach `dist/` |
-| `npm run e2e` | Playwright (WebKit, iPhone-Viewport) gegen den Produktions-Build; einmalig vorher `npx playwright install webkit` |
+| `npm run e2e` | Playwright gegen den Produktions-Build in zwei Profilen: `iphone` (WebKit) und `pixel` (Chromium); einzeln mit `npx playwright test --project=iphone`; einmalig vorher `npx playwright install webkit chromium` |
 | `node scripts/make-icons.mjs` | PNG-Icons aus `public/icons/icon.svg` neu erzeugen (nur nach Änderung des SVG) |
 
 Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` (im Tagesprogramm mit `?mode=…&run=<durchlauf>`) · `#/dev/styleguide` · `#/dev/timing` (Timing-Messung).

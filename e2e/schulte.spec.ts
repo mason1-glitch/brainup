@@ -80,6 +80,8 @@ test('Zahlensuche: Tutorial, kompletter Lauf, Ergebnis', async ({ page }) => {
 
   // Zustand bleibt erhalten: Level ist gestiegen, Tutorial wird nicht mehr erzwungen.
   await page.getByRole('button', { name: 'Fertig' }).click();
+  // Erst die Spieleliste abwarten: Chromium ist schnell genug, um den Hashwechsel zu überholen, bevor die Seite wechselt.
+  await expect(page.getByRole('heading', { name: 'Spiele' })).toBeVisible();
   await page.goto('#/spiel/schulte');
   await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
   await expect(page.getByText('Level 3', { exact: true })).toBeVisible();
