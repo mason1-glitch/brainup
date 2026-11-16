@@ -2,6 +2,7 @@
   import { flushSync, untrack } from 'svelte';
   import { timing, type Handle } from '../../core/timing';
   import type { RunProps } from '../types';
+  import { signal } from '../../ui/feedback';
   import Board from './Board.svelte';
   import { afterBlock, BLOCK, isCorrect, kindOf, levelOf, makeBlock, ON_MS, paramsFor, rateBlock, type NbackState } from './logic';
 
@@ -165,6 +166,7 @@
     live.rtMs = timing.rt(event, live.onset);
     // Vor dem ersten Vergleich (die ersten n Felder) gibt es nichts zu treffen.
     if (!live.scored) return;
+    signal(live.target);
     pressed = live.target ? 'good' : 'bad';
     tone = live.target ? 'good' : 'bad';
     note = live.target ? 'Treffer' : 'Kein Treffer';

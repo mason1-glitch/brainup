@@ -11,6 +11,23 @@ export interface DailyConfig {
 
 export const DEFAULT_DAILY: DailyConfig = { warmup: 1, training: 2, arithmetic: 1 };
 
+/** Umfang des Tagesprogramms zum Auswählen in den Einstellungen (Einstellung `daily`). */
+export type DailyPreset = 'short' | 'normal' | 'long';
+export const DAILY_PRESETS: Record<DailyPreset, DailyConfig> = {
+  short: { warmup: 1, training: 1, arithmetic: 1 },
+  normal: DEFAULT_DAILY,
+  long: { warmup: 2, training: 3, arithmetic: 1 },
+};
+
+/** Welcher Voreinstellung eine gespeicherte Konfiguration entspricht; null bei einer eigenen. */
+export function presetOf(config: DailyConfig): DailyPreset | null {
+  const match = (Object.keys(DAILY_PRESETS) as DailyPreset[]).find((id) => {
+    const p = DAILY_PRESETS[id];
+    return p.warmup === config.warmup && p.training === config.training && p.arithmetic === config.arithmetic;
+  });
+  return match ?? null;
+}
+
 const ORDER: Area[] = ['warmup', 'training', 'arithmetic'];
 
 export interface PlannableGame {

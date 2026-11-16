@@ -3,6 +3,7 @@
   import { updateStaircase } from '../../core/staircase';
   import { timing, type Presentation } from '../../core/timing';
   import type { RunProps } from '../types';
+  import { signal } from '../../ui/feedback';
   import Board from './Board.svelte';
   import { isCorrect, kindOf, makeTrial, STAIRCASE, type Rule, type Side, type SwitchState, type SwitchTrial } from './logic';
 
@@ -80,6 +81,7 @@
       correct,
       difficulty: t.windowMs,
     });
+    signal(correct);
     stair = updateStaircase(STAIRCASE, stair, correct);
     previous = t.rule;
     done++;

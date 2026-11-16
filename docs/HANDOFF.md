@@ -10,7 +10,7 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 - **Kernmodule** (`src/core/`, alle getestet): `timing`, `staircase`, `fraction`, `srs`, `rng`.
 - **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang, Sicherung als JSON-Datei (D15).
 - **Design** (`src/design/`, `src/ui/`): Tokens, Basiskomponenten, Styleguide unter `#/dev/styleguide`.
-- **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt zeigt Wochenziel, Kalender, Verläufe und Bestwerte; Einstellungen können Hell/Dunkel, Rechenarten, Rechentricks und die Datensicherung; Spiel-Host `Play.svelte`.
+- **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt zeigt Wochenziel, Kalender, Verläufe und Bestwerte; Einstellungen: Design und Bewegung, Ton und Vibration, Tagesprogramm und Wochenziel, Rechenarten und Rechentricks, Erinnerung, Datensicherung; Spiel-Host `Play.svelte`.
 - **Zehn Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
   - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
   - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
@@ -30,7 +30,7 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 
 **Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 6, Einstellungen).
+**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 7, Lighthouse CI und axe-core; danach Punkt 8, Red Team).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -66,8 +66,8 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
    - [x] Seite „Fortschritt“: Wochenziel (Tage mit Training, Standard 4), Kalender zum Blättern, je Spiel Level-Verlauf (geglättet), Trefferquote, Median-Zeit und Bestwert je Modus, Tabelle der Rechenarten. Rechenkerne in `src/progress/stats.ts` (D18), Abfragen `repo.sessionsBetweenDays`/`trialsOfGame`, `e2e/progress.spec.ts`. Offen geblieben: Das Wochenziel lässt sich noch nicht einstellen (Einstellung `weeklyGoal` wird schon gelesen – Schalter dafür gehört zu Punkt 6), Bestzeiten je Tafelgröße der Zahlensuche und Verläufe je Rechenart über die Zeit zeigt die Seite noch nicht.
    - [x] Einstufungslauf beim ersten Start: fürs Kopfrechnen als Modus `placement` (20 Aufgaben, setzt die Startlevel je Rechenart); die anderen Spiele brauchen keinen (D19).
 6. **Phase 4 – Rest**
-   - [ ] Einstellungen: Ton, Haptik, reduzierte Bewegung (`data-motion="reduced"` am `<html>`), Sitzungslänge, Umfang des Tagesprogramms (Einstellung `daily` in der Form `DailyConfig`, wird von „Heute“ schon gelesen).
-   - [ ] Erinnerung als `.ics`-Datei.
+   - [x] Einstellungen: Ton, Vibration, Bewegung reduzieren, Umfang des Tagesprogramms (Kurz/Normal/Lang – so ist „Sitzungslänge“ umgesetzt, D20), Wochenziel.
+   - [x] Erinnerung als `.ics`-Datei (Uhrzeit und Wochentage wählbar; `src/core/ics.ts`). **Auf dem echten iPhone noch nicht bestätigt**, ob das Teilen-Menü die Datei an den Kalender gibt.
 7. **Qualität**
    - [ ] Lighthouse CI (≥ 95 überall) und axe-core (0 schwere Verstöße) in GitHub Actions; Funde beheben, auch den schwachen Kontrast der Tippflächen im Blickfeld.
 8. **Phase 5 – Red Team** (PLAN.md)
@@ -161,8 +161,16 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Verlaufslinie:** `src/ui/Sparkline.svelte` (im Styleguide) – für weitere Verläufe wiederverwenden.
 - **E2E mit gesäten Daten:** `e2e/progress.spec.ts` liest eine von Hand geschriebene Sicherung ein („Sicherung einlesen“) und stellt die Uhr fest – das Muster taugt für jeden Test, der gespeicherte Sitzungen braucht.
 
+### Schritt 6 – Einstellungen und Erinnerung
+
+- **Rückmeldung:** `signal(correct)` aus `src/ui/feedback.ts` steht in jedem Lauf an der Stelle, an der die Rückmeldung gesetzt wird (nicht im Tutorial). Ein neues Spiel ruft es selbst auf – der Host tut es nicht (D20). `unlockAudio()` läuft in `Play.svelte` beim Start eines Laufs, weil iOS Töne nur nach einer Nutzeraktion zulässt.
+- **Einstellungen und IndexedDB:** nie reaktiven Zustand (`$state`) an `repo.setSetting` geben, immer ein einfaches Objekt oder eine einfache Liste – sonst wird still nichts gespeichert (so geschehen bei der Rechenarten-Auswahl).
+- **Schlüssel der Einstellungen:** `theme`, `motion`, `sound`, `haptics`, `daily`, `weeklyGoal`, `arithmetic.kinds`, `arithmetic.tricks`, `reminder`. Sie stehen in Sicherungen – nicht umbenennen.
+- **Erinnerung:** Die Kalenderdatei trägt eine feste `UID` je Installation (in der Einstellung `reminder`); eine neu erstellte Datei ersetzt damit den alten Termin. Die Uhrzeit ist „schwebend“ (ohne Zeitzone).
+
 ## Noch nicht geprüft
 
+- Erinnerung auf dem echten iPhone: ob „Kalenderdatei erstellen“ über das Teilen-Menü im Kalender landet (sonst: Datei in „Dateien“ sichern und dort antippen). Töne: ob sie nach dem ersten Start eines Laufs zu hören sind (Stummschalter aus).
 - Sicherung auf dem echten iPhone: ob das Teilen-Menü die `.json`-Datei annimmt („In Dateien sichern“) und ob „Sicherung einlesen“ sie in der Dateien-App auswählen lässt. Meldet der Nutzer ein Problem: `accept` am Datei-Feld lockern bzw. den Dateityp der Sicherung auf `text/plain` stellen und erneut testen lassen.
 
 - Auf dem echten iPhone wurde nichts systematisch geprüft; der Nutzer spielt dort täglich, alle Testläufe liefen in Playwright-WebKit mit iPhone-15-Profil.

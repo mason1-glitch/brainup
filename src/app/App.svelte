@@ -6,12 +6,16 @@
   import Today from '../routes/Today.svelte';
   import Styleguide from '../routes/dev/Styleguide.svelte';
   import Timing from '../routes/dev/Timing.svelte';
+  import { loadFeedback } from './feedbackSettings';
+  import { loadMotion } from './motion';
   import { route } from './router.svelte';
   import { requestPersistence } from './storage';
   import TabBar from './TabBar.svelte';
   import { loadTheme } from './theme';
 
   void loadTheme();
+  void loadMotion();
+  void loadFeedback();
   void requestPersistence();
 
   const playId = $derived(route.path.startsWith('/spiel/') ? route.path.slice('/spiel/'.length) : null);

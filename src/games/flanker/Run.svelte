@@ -3,6 +3,7 @@
   import { updateStaircase } from '../../core/staircase';
   import { timing, type Presentation } from '../../core/timing';
   import type { RunProps } from '../types';
+  import { signal } from '../../ui/feedback';
   import Board from './Board.svelte';
   import { isCorrect, kindOf, makeTrial, STAIRCASE, type Direction, type FlankerState, type FlankerTrial } from './logic';
 
@@ -78,6 +79,7 @@
       correct,
       difficulty: t.windowMs,
     });
+    signal(correct);
     stair = updateStaircase(STAIRCASE, stair, correct);
     done++;
     onProgress(done / total, `${done} / ${total} · ${Math.round(t.windowMs)} ms`);

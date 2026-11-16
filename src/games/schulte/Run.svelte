@@ -3,6 +3,7 @@
   import { updateStaircase } from '../../core/staircase';
   import { timing, type Handle } from '../../core/timing';
   import type { RunProps } from '../types';
+  import { signal } from '../../ui/feedback';
   import Board from './Board.svelte';
   import { kindOf, levelOf, makeTrial, nextTarget, parMs, seconds, STAIRCASE, type SchulteState, type SchulteTrial, type Tap } from './logic';
 
@@ -61,6 +62,7 @@
     if (n !== target) {
       // Fehltipp: kurz rot, und die gesuchte Zahl steht oben, bis sie gefunden ist.
       wrong = n;
+      signal(false);
       note = `Gesucht: ${target}`;
       flash = timing.wait(350);
       void flash.done.then(() => (wrong = null));
@@ -78,6 +80,7 @@
     done++;
     onProgress(done / total, label(done, trial));
     good = passed;
+    if (passed) signal(true);
     note = `${seconds(t)} · Zielzeit ${seconds(par)}`;
     const h = timing.wait(1600);
     pending = h;

@@ -7,6 +7,7 @@
   import { timing, type Handle } from '../../core/timing';
   import { repo } from '../../data/repo';
   import Button from '../../ui/Button.svelte';
+  import { signal } from '../../ui/feedback';
   import type { RunProps } from '../types';
   import { check, KINDS, nextTask, type Kind, type Task } from './generators';
   import {
@@ -122,6 +123,7 @@
     if (modeId !== 'placement') void recordReview(repo, task, outcome);
     done++;
     progress();
+    signal(correct);
     feedback = correct ? 'good' : 'bad';
     trick = !correct && tricks ? trickFor(task) : null;
     if (trick) return;

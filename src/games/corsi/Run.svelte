@@ -3,6 +3,7 @@
   import { updateStaircase } from '../../core/staircase';
   import { timing, type Handle } from '../../core/timing';
   import type { RunProps } from '../types';
+  import { signal } from '../../ui/feedback';
   import Board from './Board.svelte';
   import { advance, expected, judge, kindOf, makeTrial, STAIRCASE, type CorsiState, type CorsiTrial } from './logic';
 
@@ -112,6 +113,7 @@
     current = { ...current, stair: updateStaircase(STAIRCASE, current.stair, correct) };
     done++;
     onProgress(done / total, `${done} / ${total} · ${trial.length} Felder`);
+    signal(correct);
     open = false;
     tone = correct ? 'good' : 'bad';
     note = correct ? 'Richtig' : 'Das grüne Feld wäre dran gewesen';

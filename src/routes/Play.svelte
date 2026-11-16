@@ -9,6 +9,7 @@
   import type { TrialInput } from '../games/types';
   import { completeStep, nextStep, stepPath } from '../program/run';
   import Button from '../ui/Button.svelte';
+  import { unlockAudio } from '../ui/feedback';
   import GameFrame from '../ui/GameFrame.svelte';
   import Icon from '../ui/Icon.svelte';
   import ResultScreen from '../ui/ResultScreen.svelte';
@@ -70,6 +71,7 @@
 
   async function start() {
     if (!game || !mode) return;
+    unlockAudio();
     session = await repo.startSession(game.id, mode.id, programRunId);
     trials = [];
     progress = 0;

@@ -13,7 +13,10 @@
   import Sparkline from '../../ui/Sparkline.svelte';
   import ResultScreen from '../../ui/ResultScreen.svelte';
   import Segmented from '../../ui/Segmented.svelte';
+  import Stepper from '../../ui/Stepper.svelte';
   import Switch from '../../ui/Switch.svelte';
+  import TimeInput from '../../ui/TimeInput.svelte';
+  import WeekdayPicker from '../../ui/WeekdayPicker.svelte';
 
   const colors = ['bg', 'surface', 'sunken', 'line', 'ink', 'ink-2', 'ink-3', 'accent', 'accent-soft', 'good', 'good-soft', 'bad', 'bad-soft', 'solid-lit', 'solid-shade'];
   const sizes = ['3xl', '2xl', 'xl', 'lg', 'md', 'sm', 'xs'];
@@ -27,6 +30,9 @@
   let demo = $state<'none' | 'frame' | 'result'>('none');
   let paused = $state(true);
   let moved = $state(false);
+  let goal = $state(4);
+  let time = $state('18:00');
+  let weekdays = $state([0, 2, 4]);
 
   const summary: Summary = {
     score: 23,
@@ -166,6 +172,15 @@
         <Switch label="Eingeschaltet" checked={true} />
         <Switch label="Ausgeschaltet" checked={false} />
         <Switch label="Gesperrt" checked={true} disabled />
+      </Card>
+    </section>
+
+    <section>
+      <h2 class="label">Zahl, Uhrzeit, Wochentage</h2>
+      <Card>
+        <Stepper label="Wochenziel (Tage)" bind:value={goal} min={1} max={7} />
+        <TimeInput label="Uhrzeit" bind:value={time} />
+        <WeekdayPicker label="Wochentage" bind:value={weekdays} />
       </Card>
     </section>
 

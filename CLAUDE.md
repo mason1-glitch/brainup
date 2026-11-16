@@ -109,12 +109,12 @@ src/
   core/      reine Kernmodule ohne DOM-Abhängigkeit der Logik: timing, timingReport, staircase, fraction, srs, rng
   data/      types (Datenmodell), db (Dexie-Schema), backup (Export/Import), repo (einziger Datenzugang)
   design/    tokens.css (alle Gestaltungswerte), base.css
-  ui/        Basiskomponenten: Button, Card, Segmented, Switch, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Sparkline, Icon
+  ui/        Basiskomponenten: Button, Card, Segmented, Switch, Stepper, TimeInput, WeekdayPicker, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Sparkline, Icon
   games/     types (GameDefinition), registry, metrics, e2e + je Spiel ein Ordner (logic, Run, Tutorial, index)
   program/   Tagesprogramm: planDaily (Auswahl), run (Ablauf eines Durchlaufs)
   progress/  Fortschritt: stats (Wochenziel, Kalender, Verläufe, Bestwerte als reine Funktionen)
   routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte, dev/Timing.svelte
-  app/       App.svelte (Shell), router, theme, storage, backupFile, TabBar
+  app/       App.svelte (Shell), router, theme, motion, storage, backupFile, TabBar
 e2e/         Playwright-Tests und helpers
 public/      Icons (werden unverändert ausgeliefert)
 scripts/     Hilfsskripte (make-icons)
