@@ -11,13 +11,14 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 - **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang, Sicherung als JSON-Datei (D15).
 - **Design** (`src/design/`, `src/ui/`): Tokens, Basiskomponenten, Styleguide unter `#/dev/styleguide`.
 - **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt ist ein Platzhalter; Einstellungen können Hell/Dunkel und die Datensicherung; Spiel-Host `Play.svelte`.
-- **Sechs Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
+- **Sieben Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
   - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
   - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
   - `paperfold` – Papierfalten (Faltfolge, Lochung, vier Lochmuster)
   - `sections` – Schnittansichten (Körper mit Schnittebene, vier Formen)
   - `arithmetic` – Kopfrechnen (zehn Typen × zehn Level, Sprint-Modus)
   - `schulte` – Zahlensuche (Aufwärm-Spiel: Tafel 3×3 bis 6×6, dann rückwärts und im Wechsel)
+  - `corsi` – Blockfolge (Aufwärm-Spiel: Folge auf 4×4 Feldern merken; Länge adaptiv, Stufen schnell und rückwärts)
 - **Tagesprogramm** (D6, D14): auf „Heute“ starten, im Host Schritt für Schritt spielen, am selben Tag fortsetzen.
 - **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele (vom Nutzer bestätigt: „Passt so“).
@@ -26,7 +27,7 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 
 **Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 2, `corsi`).
+**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 2, `flanker`).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -47,7 +48,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
    - [x] Datei-Weg fürs iPhone: „Sicherung erstellen“ → „Datei speichern“ öffnet das Teilen-Menü (`navigator.share` mit Datei), sonst Download; „Sicherung einlesen“ nimmt eine Datei an (`src/app/backupFile.ts`, Karte „Daten“ in den Einstellungen, `e2e/backup.spec.ts`). **Auf dem echten iPhone noch nicht bestätigt** – dem Nutzer ist gesagt, wie er es testet.
 2. **Aufwärm-Spiele** per `/neues-spiel <id>` (Bereich `warmup`), je Spiel ein Schritt, in dieser Reihenfolge. IDs, Titel, Kurzzeile und Beschreibung wörtlich aus `docs/GAMES.md` (Test `registry.test.ts`; Kurzzeile und Beschreibung beginnen mit „Aufwärm-Spiel“). Jedes Spiel in 1–3 min spielbar, adaptiv über den Staircase, Aufgaben-Korrektheit unabhängig geprüft; Darbietung, Antwortfenster und Wartezeiten nur über die Timing-Engine, zeitbegrenzte Reize mit Soll/Ist in den Rohdaten wie bei `ufov`.
    - [x] `schulte` – Zahlensuche. Das Tagesprogramm beginnt jetzt mit einem Aufwärm-Spiel (4 Schritte); `e2e/program.spec.ts` und der Bot `playSchulte` in `e2e/helpers.ts` sind angepasst.
-   - [ ] `corsi` – Blockfolge.
+   - [x] `corsi` – Blockfolge.
    - [ ] `flanker` – Pfeilfokus.
    - [ ] `nback` – N-Back.
    - [ ] `taskswitch` – Wechselspiel.
@@ -102,7 +103,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Fortsetzen:** „Heute“ zeigt den offenen Durchlauf des Tages (`currentRun`); ein beendeter bietet „Noch ein Durchlauf“. Durchläufe früherer Tage werden nicht fortgesetzt.
 - **`recent`:** aus den letzten fünf Sitzungen je Spiel, abgebrochene zählen nicht (`recentGames`). Dadurch wechseln die Trainingsspiele von Durchlauf zu Durchlauf.
 - **Text auf „Heute“:** nennt nur die Bereiche, die im Plan wirklich vorkommen, und keine Dauer.
-- **Bots:** `e2e/helpers.ts` hat `playSchulte`, `playRotation`, `playUfov`, `playArithmetic` (fehlerfrei von der Einstiegsseite bis zum Ergebnis) – für neue Programm-Läufe ergänzen.
+- **Bots:** `e2e/helpers.ts` hat `playSchulte`, `playCorsi`, `playRotation`, `playUfov`, `playArithmetic` (fehlerfrei von der Einstiegsseite bis zum Ergebnis) – für neue Programm-Läufe ergänzen.
 
 ## Wissen aus Runde 3
 
@@ -120,6 +121,10 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Schwierigkeit:** Die Zielzeit je Zahl bleibt gleich, die Suche dauert auf großen Tafeln aber je Zahl länger – deshalb pendelt sich das Level dort ein, wo man eine Sekunde je Zahl gerade noch hält. 2-down-1-up (nur drei Tafeln je Lauf), erste Schritte in Zweiersprüngen. Die Zielzeit ist geschätzt, nicht gemessen: Erreicht der Nutzer Level 7–9 sehr schnell oder nie, `PAR_PER_NUMBER_MS` anpassen (Red Team).
 - **Trefferquote** im Ergebnis zählt Tipps, nicht Tafeln; „Median-Zeit“ ist die Zeit je gefundener Zahl.
 - **Tafel-Layout:** `Board.svelte` passt das Feld über Container-Abfragen (`cqw`/`cqh`) in den freien Platz ein – das Muster eignet sich auch für `corsi` und `nback`.
+- **Blockfolge** (`corsi/logic.ts`): 4×4 Felder, Folge ohne Wiederholung. Der Staircase regelt die Länge **1-down-1-up** – der App-Text sagt „nach jedem Erfolg länger“, also nicht auf 3-down umstellen, ohne GAMES.md zu ändern. Der erste falsche Tipp beendet den Durchgang (`judge`). Stufen wie beim Blickfeld: ab Länge 7 nach dem Lauf „schnell“, dann „rückwärts“ (`advance`). Rohdaten: `task.shown` = Soll/Ist jedes aufleuchtenden Felds, `response.taps` = Feld und Zeit seit Öffnen der Eingabe.
+- **Abläufe mit mehreren Wartezeiten** (`corsi/Run.svelte`, `nback/Run.svelte`, Tutorials): `async`-Funktion mit `hold(handle)` und einem Zähler `generation`. Ein abgebrochenes Handle erfüllt sein Promise nie – der Zähler fängt den Rest ab (eine schon eingereihte Fortsetzung nach Pause). Dieses Muster übernehmen, nicht `setTimeout`.
+- **Pfeilfokus** (`flanker/logic.ts`): Der Staircase regelt das **Antwortfenster** (3-down-1-up, multiplikativ); die Reihe steht per `timing.present` genau so lange. Dafür übergibt `present` jetzt den Reizbeginn an `show(onset)` – so lässt sich schon während der Darbietung antworten und die Reaktionszeit messen. Läuft das Fenster ab, zählt der Durchgang als falsch (`response: null`, `rtMs: null`) und trägt Soll/Ist (`task.actualMs`, `task.frames`); bei beantworteten Durchgängen gibt es kein Ist, weil die Antwort die Darbietung beendet. `kind` = `stimmig`/`widerspruch`; daraus rechnet `summarize` „Ablenkung kostet“.
+- **E2E bei schrumpfendem Antwortfenster:** nie eine feste Zahl richtiger Antworten erwarten – in der CI verpasst der Bot Durchgänge. In einer Schleife spielen, bis das Ergebnis da ist, und die Rohdaten gegen ihre eigene Regel prüfen (`e2e/flanker.spec.ts`).
 - **Registry-Reihenfolge:** Neue Spiele hinten anhängen; die Reihenfolge innerhalb eines Bereichs entscheidet bei Gleichstand im Tagesprogramm (`planDaily`), und `e2e/program.spec.ts` legt die Abfolge fest.
 
 ## Noch nicht geprüft
@@ -150,6 +155,6 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - Staircase-Schwelle streut: ±10 % erst nach einigen hundert Durchgängen, eine Sitzung liegt bei etwa ±20 % (D10). Verläufe glätten, Bestwerte nicht auf einer einzelnen Schwellenschätzung aufbauen.
 - `<meta name="theme-color">` folgt dem System-Schema, nicht der App-Einstellung Hell/Dunkel.
 - iOS: Daten bleiben nur in der installierten Home-Bildschirm-App zuverlässig erhalten; Vibration ist im Browser kaum verfügbar.
-- Spiel-IDs (`rotation`, `ufov`, `paperfold`, `sections`, `arithmetic`, `schulte`) und Modus-IDs stehen in gespeicherten Daten – nicht umbenennen. Der Anzeigename darf sich ändern – dann in `docs/GAMES.md` **und** in `index.ts` des Spiels, sonst schlägt `registry.test.ts` fehl.
+- Spiel-IDs (`rotation`, `ufov`, `paperfold`, `sections`, `arithmetic`, `schulte`, `corsi`) und Modus-IDs stehen in gespeicherten Daten – nicht umbenennen. Der Anzeigename darf sich ändern – dann in `docs/GAMES.md` **und** in `index.ts` des Spiels, sonst schlägt `registry.test.ts` fehl.
 - Quellen in GAMES.md: nur nachgeschlagene Angaben (Crossref/PubMed), keine DOIs aus dem Gedächtnis. Aussagen über Studien stützen sich dort nur auf die Zusammenfassungen.
 - Ändert sich die Form eines Schwierigkeitszustands: `stateVersion` erhöhen und `migrateState` schreiben, sonst startet das Spiel für alle wieder bei Level 1.

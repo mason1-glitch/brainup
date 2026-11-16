@@ -23,7 +23,7 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | Schnittansichten | `sections` | Training | räumliches Vorstellen: Körper und Schnittflächen | vorhanden |
 | Kopfrechnen | `arithmetic` | Kopfrechnen | Rechenfertigkeit und Tempo | vorhanden |
 | Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | vorhanden |
-| Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | geplant |
+| Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | vorhanden |
 | Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | geplant |
 | N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | geplant |
 | Wechselspiel | `taskswitch` | Aufwärmen & Fokus | zwischen zwei Regeln umschalten | geplant (optional) |
@@ -98,9 +98,9 @@ Kriterien aus PLAN.md: in 1–3 Minuten spielbar, adaptiv steigerbar, per Touch 
 - **Kurzzeile:** Aufwärm-Spiel: Zahlen der Reihe nach finden
 - **Beschreibung:** Aufwärm-Spiel. Tippe die Zahlen der Reihe nach an – 1, 2, 3 … – so schnell du kannst. Die Tafel wächst mit dir.
 
-### Blockfolge · `corsi` (geplant)
+### Blockfolge · `corsi`
 
-- **Fordert:** Felder leuchten nacheinander auf; die Folge in derselben Reihenfolge nachtippen – räumliches Kurzzeitgedächtnis.
+- **Fordert:** Felder leuchten nacheinander auf; die Folge in derselben Reihenfolge nachtippen – räumliches Kurzzeitgedächtnis. Adaptiv über die Länge der Folge (nach jedem Erfolg länger, nach einem Fehler kürzer); ab Länge 7 kommen ein schnelleres Tempo und danach die umgekehrte Reihenfolge dazu.
 - **Quelle:** Corsi-Block-Aufgabe, beschrieben und normiert in [KE].
 - **Titel:** Blockfolge
 - **Kurzzeile:** Aufwärm-Spiel: Folge merken und nachtippen

@@ -74,7 +74,7 @@ test('Tagesprogramm: starten, unterbrechen, am selben Tag fortsetzen, bis zum En
   // Ein weiterer Durchlauf bringt die Trainingsspiele, die noch nicht dran waren.
   await page.getByRole('button', { name: 'Noch ein Durchlauf' }).click();
   await expect(page.getByText('Tagesprogramm · Schritt 1 von 4')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Zahlensuche' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Blockfolge' })).toBeVisible();
   await page.goto('#/');
-  await expect(page.locator('.row strong')).toHaveText(['Zahlensuche', 'Papierfalten', 'Schnittansichten', 'Kopfrechnen']);
+  await expect(page.locator('.row strong')).toHaveText(['Blockfolge', 'Papierfalten', 'Schnittansichten', 'Kopfrechnen']);
 });

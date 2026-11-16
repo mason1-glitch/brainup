@@ -29,6 +29,35 @@ export async function playSchulte(page: Page): Promise<void> {
   await page.getByTestId('result-headline').waitFor();
 }
 
+/**
+ * Eine Folge der Blockfolge: wartet auf die Eingabephase und tippt dann die Felder der Folge an.
+ * @param length Länge der Folge; ohne Angabe steht sie im Rahmen-Label („i / 10 · N Felder“)
+ * @param wrong true: nur einen falschen Tipp (beendet die Folge)
+ * @returns die Länge der Folge
+ */
+export async function corsiRound(page: Page, opts: { length?: number; wrong?: boolean } = {}): Promise<number> {
+  await page.locator('.board[data-phase="respond"]').waitFor();
+  const length = opts.length ?? Number((await page.getByText(/ \/ \d+ · \d+ Felder$/).innerText()).match(/· (\d+) Felder/)![1]);
+  if (opts.wrong) {
+    await page.locator('.cell[data-correct="false"]:enabled').first().click();
+    return length;
+  }
+  for (let i = 0; i < length; i++) await page.locator('.cell[data-correct="true"]').click();
+  return length;
+}
+
+export async function playCorsi(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Kurz üben' }).click();
+  // Tutorial (2 + 3 Felder), dann 10 Folgen.
+  await corsiRound(page, { length: 2 });
+  await corsiRound(page, { length: 3 });
+  for (let i = 1; i <= 10; i++) {
+    await corsiRound(page);
+    await page.getByText(new RegExp(`^${i} / 10`)).waitFor();
+  }
+  await page.getByTestId('result-headline').waitFor();
+}
+
 export async function playRotation(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Kurz üben' }).click();
   for (const name of ['Weiter', 'Verstanden']) {
