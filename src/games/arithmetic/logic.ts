@@ -71,6 +71,15 @@ export function applyAnswer(state: ArithmeticState, task: Task, outcome: Outcome
   return { stairs: { ...state.stairs, [task.kind]: stair } };
 }
 
+/** Einstellung: welche Rechenarten Sprint und Präzision mischen (Liste von `Kind`). */
+export const KINDS_SETTING = 'arithmetic.kinds';
+
+/** Liest die gespeicherte Auswahl; Unbekanntes fällt weg, eine leere oder fehlende Auswahl heißt „alle“. */
+export function activeKinds(stored: unknown): Kind[] {
+  const chosen = Array.isArray(stored) ? KINDS.filter((k) => stored.includes(k)) : [];
+  return chosen.length > 0 ? chosen : [...KINDS];
+}
+
 /** Nächster Rechentyp im gemischten Lauf – nie zweimal derselbe hintereinander. */
 export function pickKind(rng: Rng, previous?: Kind, kinds: readonly Kind[] = KINDS): Kind {
   const pool = kinds.length > 1 ? kinds.filter((k) => k !== previous) : kinds;

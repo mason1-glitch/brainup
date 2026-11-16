@@ -109,7 +109,7 @@ src/
   core/      reine Kernmodule ohne DOM-Abhängigkeit der Logik: timing, staircase, fraction, srs, rng
   data/      types (Datenmodell), db (Dexie-Schema), backup (Export/Import), repo (einziger Datenzugang)
   design/    tokens.css (alle Gestaltungswerte), base.css
-  ui/        Basiskomponenten: Button, Card, Segmented, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Icon
+  ui/        Basiskomponenten: Button, Card, Segmented, Switch, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Icon
   games/     types (GameDefinition), registry, metrics, e2e + je Spiel ein Ordner (logic, Run, Tutorial, index)
   program/   Tagesprogramm: planDaily (Auswahl), run (Ablauf eines Durchlaufs)
   routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte

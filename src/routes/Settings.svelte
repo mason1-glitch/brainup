@@ -6,9 +6,12 @@
   import { loadTheme, setTheme, type Theme } from '../app/theme';
   import { BackupError } from '../data/backup';
   import { repo } from '../data/repo';
+  import { KIND_TITLES, KINDS, type Kind } from '../games/arithmetic/generators';
+  import { activeKinds, KINDS_SETTING } from '../games/arithmetic/logic';
   import Button from '../ui/Button.svelte';
   import Card from '../ui/Card.svelte';
   import Segmented from '../ui/Segmented.svelte';
+  import Switch from '../ui/Switch.svelte';
   import Page from './Page.svelte';
 
   let theme = $state<Theme>('auto');
@@ -21,6 +24,15 @@
   };
   let persistence = $state<Persistence | null>(null);
   void requestPersistence().then((p) => (persistence = p));
+
+  /** Rechenarten, die Sprint und Präzision mischen. */
+  let kinds = $state<Kind[]>([...KINDS]);
+  void repo.getSetting<unknown>(KINDS_SETTING, null).then((stored) => (kinds = activeKinds(stored)));
+
+  function toggleKind(kind: Kind, on: boolean) {
+    kinds = KINDS.filter((k) => (k === kind ? on : kinds.includes(k)));
+    void repo.setSetting(KINDS_SETTING, kinds);
+  }
 
   const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
   const counts = (sessions: number, trials: number) =>
@@ -68,6 +80,21 @@
     </div>
   </Card>
   <Card>
+    <h2>Kopfrechnen</h2>
+    <p class="muted note">Diese Rechenarten kommen im Sprint und in der Präzision vor. Das Fehlertraining bringt alle fälligen Aufgaben.</p>
+    <div class="list">
+      {#each KINDS as kind (kind)}
+        <!-- Die letzte eingeschaltete bleibt an: Ohne Rechenart gäbe es keine Aufgaben. -->
+        <Switch
+          label={KIND_TITLES[kind]}
+          checked={kinds.includes(kind)}
+          disabled={kinds.length === 1 && kinds[0] === kind}
+          onChange={(on) => toggleKind(kind, on)}
+        />
+      {/each}
+    </div>
+  </Card>
+  <Card>
     <h2>Daten</h2>
     <p class="muted note">Alle Daten liegen nur auf diesem Gerät.</p>
     {#if persistence}
@@ -96,6 +123,12 @@
 <style>
   .control {
     margin-top: var(--s-4);
+  }
+  .list {
+    margin-top: var(--s-3);
+  }
+  .list > :global(* + *) {
+    border-top: 1px solid var(--line);
   }
   .actions {
     display: grid;

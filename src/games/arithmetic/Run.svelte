@@ -7,8 +7,19 @@
   import { repo } from '../../data/repo';
   import Button from '../../ui/Button.svelte';
   import type { RunProps } from '../types';
-  import { check, nextTask, type Kind, type Task } from './generators';
-  import { applyAnswer, levelOfKind, outcomeIn, pickKind, pointsFor, toRecord, type ArithmeticState, type ModeId } from './logic';
+  import { check, KINDS, nextTask, type Kind, type Task } from './generators';
+  import {
+    activeKinds,
+    applyAnswer,
+    KINDS_SETTING,
+    levelOfKind,
+    outcomeIn,
+    pickKind,
+    pointsFor,
+    toRecord,
+    type ArithmeticState,
+    type ModeId,
+  } from './logic';
   import { dueTasks, recordReview } from './reviews';
   import TaskPad from './TaskPad.svelte';
 
@@ -28,7 +39,12 @@
   let done = 0;
   /** Fehlertraining: die fälligen Aufgaben dieser Sitzung; null, solange sie noch geladen werden. */
   let due: Task[] | null = null;
-  let loading = false;
+  /** Sprint und Präzision: die in den Einstellungen gewählten Rechenarten. */
+  let kinds: readonly Kind[] = KINDS;
+  /** Lädt einmal je Lauf, was vor der ersten Aufgabe feststehen muss. */
+  let prepared: Promise<void> | null = null;
+  /** Zählt jedes Fortsetzen und jede Pause: Nur das jüngste Fortsetzen stellt eine Aufgabe. */
+  let resumes = 0;
 
   let task = $state.raw<Task | null>(null);
   let count = $state(0);
@@ -52,7 +68,7 @@
       // Nach einer Pause kommt die verworfene Aufgabe wieder: Sie bleibt vorn, bis sie beantwortet ist.
       task = due![0]!;
     } else {
-      const kind = pickKind(Math.random, previous.kind);
+      const kind = pickKind(Math.random, previous.kind, kinds);
       task = nextTask(Math.random, kind, levelOfKind(current, kind), previous.key);
       previous = { kind, key: task.key };
     }
@@ -92,26 +108,32 @@
     void h.done.then(next);
   }
 
+  function prepare(): Promise<void> {
+    prepared ??= (async () => {
+      if (modeId === 'review') {
+        // Die Auswahl steht damit für die ganze Sitzung fest.
+        due = await dueTasks(repo, Date.now(), limit);
+        limit = due.length;
+        nothingDue = due.length === 0;
+      } else {
+        kinds = activeKinds(await repo.getSetting<unknown>(KINDS_SETTING, null));
+      }
+    })();
+    return prepared;
+  }
+
   /** Beginnt bzw. setzt fort, sobald alles da ist. */
   function resume() {
-    if (modeId === 'review' && due === null) {
-      // Einmal je Lauf laden; die Auswahl steht damit für die ganze Sitzung fest.
-      if (loading) return;
-      loading = true;
-      void dueTasks(repo, Date.now(), limit).then((tasks) => {
-        due = tasks;
-        limit = tasks.length;
-        nothingDue = tasks.length === 0;
-        if (!nothingDue) next();
-      });
-      return;
-    }
-    if (!nothingDue) next();
+    const mine = ++resumes;
+    void prepare().then(() => {
+      if (mine === resumes && !nothingDue) next();
+    });
   }
 
   // Uhr und Pause. Bei Pause steht die Uhr; die offene Aufgabe wird verworfen.
   $effect(() => {
     if (paused) {
+      resumes++;
       untrack(() => (task = null));
       return;
     }

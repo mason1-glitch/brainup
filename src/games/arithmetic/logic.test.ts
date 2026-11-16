@@ -7,7 +7,7 @@ import { createRepo } from '../../data/repo';
 import type { Trial } from '../../data/types';
 import { answerInput, check, generate, KINDS } from './generators';
 import { arithmetic } from './index';
-import { applyAnswer, fromRecord, initialState, levelOf, levelOfKind, outcomeIn, outcomeOf, pickKind, slowMs, summarize, toRecord } from './logic';
+import { activeKinds, applyAnswer, fromRecord, initialState, levelOf, levelOfKind, outcomeIn, outcomeOf, pickKind, slowMs, summarize, toRecord } from './logic';
 import { dueTasks, recordReview } from './reviews';
 
 describe('Adaptivität je Rechentyp', () => {
@@ -86,6 +86,28 @@ describe('Speicherform und Wiederholungen', () => {
       now += 30 * DAY;
     }
     expect((await dueTasks(repo, now)).map((t) => t.key)).toEqual([b.key]);
+  });
+});
+
+describe('Auswahl der Rechenarten', () => {
+  it('gespeicherte Auswahl in fester Reihenfolge; Unbekanntes fällt weg; leer oder kaputt heißt alle', () => {
+    expect(activeKinds(['percent', 'table'])).toEqual(['table', 'percent']);
+    expect(activeKinds(['table', 'table', 'gibtsnicht', 7])).toEqual(['table']);
+    for (const broken of [undefined, null, [], ['gibtsnicht'], 'table', { table: true }]) expect(activeKinds(broken)).toEqual([...KINDS]);
+  });
+
+  it('der gemischte Lauf bleibt in der Auswahl – auch mit nur einer Rechenart', () => {
+    const rng = seededRng(12);
+    let previous: (typeof KINDS)[number] | undefined;
+    const seen = new Set<string>();
+    for (let i = 0; i < 300; i++) {
+      const kind = pickKind(rng, previous, activeKinds(['div', 'power', 'estimate']));
+      expect(kind).not.toBe(previous);
+      seen.add(kind);
+      previous = kind;
+    }
+    expect([...seen].sort()).toEqual(['div', 'estimate', 'power']);
+    expect(pickKind(rng, 'add', activeKinds(['add']))).toBe('add');
   });
 });
 

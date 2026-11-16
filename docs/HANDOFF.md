@@ -55,7 +55,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
    - [ ] `taskswitch` – Wechselspiel.
 3. **Kopfrechnen ausbauen**
    - [x] Modi „Präzision“ (`precision`, 15 Aufgaben ohne Uhr) und „Fehlertraining“ (`review`, bis zu 10 fällige Aufgaben der Wiederholungsliste) neben `sprint`. `arithmetic/Run.svelte` verzweigt nach `mode.id`; Tests in `arithmetic/logic.test.ts` („Modi“), je Modus ein E2E-Lauf in `e2e/arithmetic.spec.ts`.
-   - [ ] Auswahl einzelner Rechenarten (bisher mischt der Sprint alle; `pickKind` nimmt schon eine Typliste).
+   - [x] Auswahl einzelner Rechenarten: Schalter in den Einstellungen (Karte „Kopfrechnen“), Einstellung `arithmetic.kinds`, gilt für Sprint und Präzision.
    - [ ] Rechentrick nach Fehlern, je Typ.
 4. **Messung**
    - [ ] Timing-Log über 200 Durchgänge (Soll- gegen Ist-Dauer, Abnahmekriterium) als Playwright-Lauf mit Prüfung auf ±1 Frame, dazu eine Seite `#/dev/timing`, die dieselbe Messung auf dem iPhone des Nutzers ausführt und anzeigt.
@@ -133,6 +133,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Modi** (`ModeId` in `arithmetic/logic.ts`): `sprint`, `precision`, `review` – die IDs stehen in gespeicherten Sitzungen. `outcomeIn()` legt fest, wie eine Antwort je Modus zählt: Präzision kennt kein „langsam“; im Fehlertraining zählt das Tempo, aber die Level der Rechenarten bleiben unberührt (es sind alte Aufgaben).
 - **Fehlertraining:** lädt beim Start einmal die fälligen Aufgaben (`dueTasks(repo, jetzt, 10)`) – die Sitzung ist so lang wie diese Liste. Nach einer Pause kommt die verworfene Aufgabe wieder. Ist nichts fällig, zeigt der Lauf einen Hinweis mit „Zurück“.
 - **Host:** Ein Lauf, der ohne einen einzigen Durchgang endet, gilt als abgebrochen (`Play.svelte`, `onFinish`) – kein Ergebnisbildschirm, keine beendete Sitzung. Das gilt für alle Spiele.
+- **Rechenarten:** Die Einstellung `arithmetic.kinds` (Liste von `Kind`) liest der Lauf einmal beim Start über `activeKinds()` – leer, fehlend oder unbekannt heißt „alle“. Die Schalter kommen aus der neuen Basiskomponente `src/ui/Switch.svelte` (im Styleguide); für Ton, Haptik und Bewegung in Phase 4 wiederverwenden.
 - **Wertung:** `summarize` kennt den Modus nicht (D5); „Punkte“ und „Richtig x von y“ gelten für alle drei. Bestwerte vergleicht der Host je Modus.
 - **E2E mit Fälligkeiten:** `page.clock.setFixedTime` stellt nur `Date.now()` fest; Bildtakt und Timing-Engine laufen weiter. So lässt sich „elf Minuten später“ prüfen (`e2e/arithmetic.spec.ts`).
 

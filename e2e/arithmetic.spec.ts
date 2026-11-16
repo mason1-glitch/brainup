@@ -189,3 +189,46 @@ test('Kopfrechnen: Fehlertraining bringt falsche Aufgaben wieder, sobald sie fä
   expect(soon).toEqual([asked[0]]);
   for (const r of after.filter((x) => x.task.text.trim() !== asked[0])) expect(r.due).toBeGreaterThanOrEqual(start + 24 * 60 * MINUTE);
 });
+
+test('Kopfrechnen: In den Einstellungen gewählte Rechenarten gelten für den Lauf', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as Record<string, unknown>).__brainupE2E = true;
+  });
+  await page.goto('#/einstellungen');
+  const kind = (name: string) => page.getByRole('switch', { name, exact: true });
+  await expect(kind('Einmaleins')).toBeChecked();
+  for (const name of ['Addition', 'Subtraktion', 'Multiplikation', 'Division', 'Quadrate und Wurzeln', 'Brüche und Dezimalzahlen', 'Zehnerpotenzen', 'Überschlag']) {
+    await kind(name).click();
+    await expect(kind(name)).not.toBeChecked();
+  }
+  // Die letzte eingeschaltete lässt sich nicht ausschalten.
+  await kind('Prozent').click();
+  await expect(kind('Einmaleins')).toBeChecked();
+  await expect(kind('Einmaleins')).toBeDisabled();
+  await kind('Prozent').click();
+  await expect(kind('Einmaleins')).toBeEnabled();
+
+  // Die Auswahl ist gespeichert.
+  await page.reload();
+  await expect(kind('Prozent')).toBeChecked();
+  await expect(kind('Addition')).not.toBeChecked();
+
+  await page.goto('#/spiel/arithmetic?mode=precision');
+  await tutorial(page);
+  for (let i = 1; i <= 15; i++) await solve(page);
+  await expect(page.getByTestId('result-headline')).toBeVisible();
+  const kinds = await page.evaluate(
+    () =>
+      new Promise<string[]>((resolve) => {
+        const open = indexedDB.open('brainup');
+        open.onsuccess = () => {
+          const all = open.result.transaction('trials').objectStore('trials').getAll();
+          all.onsuccess = () => resolve(all.result.map((t: { kind: string }) => t.kind));
+        };
+      }),
+  );
+  expect(kinds).toHaveLength(15);
+  expect(new Set(kinds)).toEqual(new Set(['table', 'percent']));
+  // Bei zwei Rechenarten wechseln sie sich ab.
+  for (let i = 1; i < kinds.length; i++) expect(kinds[i]).not.toBe(kinds[i - 1]);
+});

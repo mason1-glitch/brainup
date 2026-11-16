@@ -12,6 +12,7 @@
   import ProgressRing from '../../ui/ProgressRing.svelte';
   import ResultScreen from '../../ui/ResultScreen.svelte';
   import Segmented from '../../ui/Segmented.svelte';
+  import Switch from '../../ui/Switch.svelte';
 
   const colors = ['bg', 'surface', 'sunken', 'line', 'ink', 'ink-2', 'ink-3', 'accent', 'accent-soft', 'good', 'good-soft', 'bad', 'bad-soft', 'solid-lit', 'solid-shade'];
   const sizes = ['3xl', '2xl', 'xl', 'lg', 'md', 'sm', 'xs'];
@@ -156,6 +157,15 @@
     <section>
       <h2 class="label">Auswahl</h2>
       <Segmented label="Beispiel" value="a" options={[{ id: 'a', title: 'Sprint' }, { id: 'b', title: 'Präzision' }, { id: 'c', title: 'Fehler' }]} />
+    </section>
+
+    <section>
+      <h2 class="label">Schalter</h2>
+      <Card>
+        <Switch label="Eingeschaltet" checked={true} />
+        <Switch label="Ausgeschaltet" checked={false} />
+        <Switch label="Gesperrt" checked={true} disabled />
+      </Card>
     </section>
 
     <section>
