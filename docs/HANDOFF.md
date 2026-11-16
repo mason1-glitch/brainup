@@ -23,9 +23,9 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`. Für Aufgaben mit vier Antwortbildern sind `paperfold` und `sections` die Muster (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
 - **Abnahme zuletzt:** `npm test` (104 Tests), `npm run build`, `npm run e2e` (10 Läufe im iPhone-Viewport, ≈ 5 min) grün.
 
-**Branches:** Alles bis PR #5 ist in `main`. Neue Arbeit auf einem Branch von `main`, Pull Request nach dem ersten erledigten Schritt (CLAUDE.md).
+**Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** Punkt 1 unter „Offen“ (Daten sichern).
+**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 1, Export/Import).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -41,7 +41,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 ### Offen
 
 1. **Daten sichern** – zuerst, weil der Nutzer die App täglich nutzt und iOS den Speicher räumen kann.
-   - [ ] `navigator.storage.persist()` beim Start anfragen; Ergebnis in den Einstellungen anzeigen.
+   - [x] `navigator.storage.persist()` beim Start anfragen; Ergebnis in den Einstellungen anzeigen. (`src/app/storage.ts`, Karte „Daten“ in den Einstellungen, `e2e/settings.spec.ts`)
    - [ ] JSON-Export und -Import aller Daten über `repo` (`exportAll`/`importAll` neu), mit `SCHEMA_VERSION`; ältere Exporte laufen beim Import durch dieselben Upgrade-Schritte (D4). Ersetzen oder Zusammenführen entscheiden und in `DECISIONS.md` begründen – Rohdaten dürfen nie still verloren gehen. Test „Export → Import → Export ist verlustfrei“ (Abnahmekriterium) und ein E2E-Lauf.
    - [ ] Export muss in der Home-Bildschirm-App auf dem iPhone als Datei ankommen, Import eine Datei annehmen – einen Weg wählen, der in iOS-PWAs funktioniert. Dem Nutzer danach in drei Sätzen sagen, wie er es auf dem iPhone testet; nicht auf die Antwort warten.
 2. **Aufwärm-Spiele** per `/neues-spiel <id>` (Bereich `warmup`), je Spiel ein Schritt, in dieser Reihenfolge. IDs, Titel, Kurzzeile und Beschreibung wörtlich aus `docs/GAMES.md` (Test `registry.test.ts`; Kurzzeile und Beschreibung beginnen mit „Aufwärm-Spiel“). Jedes Spiel in 1–3 min spielbar, adaptiv über den Staircase, Aufgaben-Korrektheit unabhängig geprüft; Darbietung, Antwortfenster und Wartezeiten nur über die Timing-Engine, zeitbegrenzte Reize mit Soll/Ist in den Rohdaten wie bei `ufov`.
