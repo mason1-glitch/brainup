@@ -25,7 +25,7 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | vorhanden |
 | Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | vorhanden |
 | Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | vorhanden |
-| N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | geplant |
+| N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | vorhanden |
 | Wechselspiel | `taskswitch` | Aufwärmen & Fokus | zwischen zwei Regeln umschalten | geplant (optional) |
 
 Die IDs stehen später in gespeicherten Daten – nach dem ersten Release nicht mehr ändern.
@@ -114,9 +114,9 @@ Kriterien aus PLAN.md: in 1–3 Minuten spielbar, adaptiv steigerbar, per Touch 
 - **Kurzzeile:** Aufwärm-Spiel: nur der mittlere Pfeil zählt
 - **Beschreibung:** Aufwärm-Spiel. Wohin zeigt der mittlere Pfeil? Tippe links oder rechts – und lass dich von den Pfeilen daneben nicht ablenken.
 
-### N-Back · `nback` (geplant)
+### N-Back · `nback`
 
-- **Fordert:** Eine Folge von Positionen verfolgen und melden, wenn die aktuelle der von vor n Schritten gleicht – Arbeitsgedächtnis fortlaufend aktualisieren.
+- **Fordert:** Eine Folge von Positionen verfolgen und melden, wenn die aktuelle der von vor n Schritten gleicht – Arbeitsgedächtnis fortlaufend aktualisieren. Adaptiv in Blöcken von 20 gewerteten Feldern: Nach einem sicheren Block (höchstens ein Fehler) wird es schwerer – n steigt von 1 bis 3, dazwischen wird das Tempo schneller; nach vielen Fehlern geht es eine Stufe zurück.
 - **Quelle:** Aufgabe nach [KI]. Ob N-Back-Training über die Aufgabe hinaus wirkt, ist umstritten – die App verspricht dazu nichts.
 - **Titel:** N-Back
 - **Kurzzeile:** Aufwärm-Spiel: war das Feld vor n Schritten dasselbe?
