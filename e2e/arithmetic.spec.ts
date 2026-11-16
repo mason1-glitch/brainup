@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { openGame } from './helpers';
 
-/** Tippt eine Eingabe auf der Zahlentastatur und bestätigt. */
-async function type(page: Page, input: string): Promise<void> {
-  // Kurzes Zeitlimit: Läuft die Zeit mitten im Tippen ab, verschwindet die Tastatur.
-  for (const key of [...input, 'ok']) await page.locator(`.key[data-key="${key}"]`).click({ timeout: 3000 });
+/**
+ * Tippt eine Eingabe auf der Zahlentastatur und bestätigt.
+ * @param timeout nur im Sprint kurz: Läuft die Zeit mitten im Tippen ab, verschwindet die Tastatur.
+ */
+async function type(page: Page, input: string, timeout?: number): Promise<void> {
+  for (const key of [...input, 'ok']) await page.locator(`.key[data-key="${key}"]`).click({ timeout });
 }
 
 test('Kopfrechnen: Tutorial, 60-s-Sprint, Ergebnis', async ({ page }) => {
@@ -30,7 +32,7 @@ test('Kopfrechnen: Tutorial, 60-s-Sprint, Ergebnis', async ({ page }) => {
     const answer = await prompt?.getAttribute('data-answer').catch(() => null);
     if (!prompt || !answer) continue;
     const wrong = (answered + 1) % 5 === 0;
-    const sent = await type(page, wrong ? '99999999' : answer).then(() => true, () => false);
+    const sent = await type(page, wrong ? '99999999' : answer, 3000).then(() => true, () => false);
     if (!sent) continue;
     answered++;
     if (wrong) sentWrong++;

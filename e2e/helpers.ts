@@ -52,9 +52,9 @@ export async function playUfov(page: Page): Promise<void> {
 }
 
 export async function playArithmetic(page: Page): Promise<void> {
-  const type = async (input: string) => {
-    // Kurzes Zeitlimit: Läuft die Zeit mitten im Tippen ab, verschwindet die Tastatur.
-    for (const key of [...input, 'ok']) await page.locator(`.key[data-key="${key}"]`).click({ timeout: 3000 });
+  // Zeitlimit nur im Sprint: Läuft die Zeit mitten im Tippen ab, verschwindet die Tastatur.
+  const type = async (input: string, timeout?: number) => {
+    for (const key of [...input, 'ok']) await page.locator(`.key[data-key="${key}"]`).click({ timeout });
   };
   await page.getByRole('button', { name: 'Kurz üben' }).click();
   await type('13');
@@ -68,6 +68,6 @@ export async function playArithmetic(page: Page): Promise<void> {
     const prompt = await page.locator('.prompt.visible').elementHandle({ timeout: 2000 }).catch(() => null);
     const answer = await prompt?.getAttribute('data-answer').catch(() => null);
     if (!prompt || !answer) continue;
-    if (await type(answer).then(() => true, () => false)) await prompt.waitForElementState('hidden', { timeout: 5000 }).catch(() => {});
+    if (await type(answer, 3000).then(() => true, () => false)) await prompt.waitForElementState('hidden', { timeout: 5000 }).catch(() => {});
   }
 }

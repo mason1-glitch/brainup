@@ -6,7 +6,11 @@ test('Tagesprogramm: starten, unterbrechen, am selben Tag fortsetzen, bis zum En
   await page.addInitScript(() => {
     (window as unknown as Record<string, unknown>).__brainupE2E = true;
   });
+  // Feste Uhrzeit am Mittag: Ein Durchlauf gilt nur am selben Tag – läuft der Test über Mitternacht,
+  // würde er sonst scheitern. Timer und Bildtakt laufen normal weiter.
+  await page.clock.setFixedTime(new Date(2026, 5, 15, 12, 0, 0));
   await page.goto('./');
+  await expect(page.getByText('Montag, 15. Juni')).toBeVisible();
 
   // Plan: zwei Trainingsspiele, dann Kopfrechnen.
   await expect(page.locator('.row strong')).toHaveText(['Mentale Rotation', 'Blickfeld', 'Kopfrechnen']);
@@ -23,6 +27,7 @@ test('Tagesprogramm: starten, unterbrechen, am selben Tag fortsetzen, bis zum En
   // Unterbrechen: App neu laden. „Heute“ kennt den Durchlauf noch und setzt ihn fort.
   await page.goto('#/');
   await page.reload();
+  await expect(page.getByText('Montag, 15. Juni')).toBeVisible();
   await expect(page.locator('.row')).toHaveCount(3);
   await expect(page.locator('.row.done')).toHaveCount(1);
   await page.getByRole('button', { name: 'Fortsetzen' }).click();
