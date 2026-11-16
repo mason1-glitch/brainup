@@ -27,7 +27,11 @@
   const game = findGame(id);
   // svelte-ignore state_referenced_locally
   let selectedMode = $state(game?.modes.find((m) => m.id === modeId)?.id ?? game?.modes[0]?.id ?? '');
-  const mode = $derived(game?.modes.find((m) => m.id === selectedMode) ?? game?.modes[0]);
+  /** Schon einmal zu Ende gespielt? Bis dahin wird ein Einstufungslauf angeboten, wenn das Spiel einen hat. */
+  let played = $state(true);
+  let skipPlacement = $state(false);
+  const placing = $derived(!!game?.placement && !played && !skipPlacement);
+  const mode = $derived(placing ? game?.placement : (game?.modes.find((m) => m.id === selectedMode) ?? game?.modes[0]));
 
   let phase = $state<'loading' | 'intro' | 'tutorial' | 'run' | 'result'>('loading');
   let tutorialDone = $state(false);
@@ -58,6 +62,7 @@
     else difficulty = game.migrateState?.(rec.state, rec.stateVersion) ?? game.initialState();
     tutorialDone = rec?.tutorialDone ?? false;
     level = game.level(difficulty);
+    if (game.placement) played = (await repo.sessionsOfGame(game.id, 500)).some((s) => s.completed);
     if (programRunId) run = (await repo.getProgramRun(programRunId)) ?? null;
     phase = 'intro';
   }
@@ -99,6 +104,7 @@
     }
     summary = result;
     phase = 'result';
+    played = true;
   }
 
   async function abort() {
@@ -141,15 +147,18 @@
       <p class="muted">{game.description}</p>
     </div>
     <div class="actions">
-      {#if game.modes.length > 1}
+      {#if placing}
+        <p class="muted placement">Zuerst eine kurze Einstufung, damit die Schwierigkeit von Anfang an ungefähr passt.</p>
+      {:else if game.modes.length > 1}
         <Segmented label="Modus" bind:value={selectedMode} options={game.modes} />
       {/if}
       {#if tutorialDone}
-        <Button size="lg" block onclick={start}>Start</Button>
-        <Button variant="ghost" block onclick={() => (phase = 'tutorial')}>Anleitung</Button>
+        <Button size="lg" block onclick={start}>{placing ? 'Einstufung beginnen' : 'Start'}</Button>
+        {#if !placing}<Button variant="ghost" block onclick={() => (phase = 'tutorial')}>Anleitung</Button>{/if}
       {:else}
         <Button size="lg" block onclick={() => (phase = 'tutorial')}>Kurz üben</Button>
       {/if}
+      {#if placing}<Button variant="ghost" block onclick={() => (skipPlacement = true)}>Ohne Einstufung</Button>{/if}
     </div>
   </div>
 {:else if phase === 'tutorial'}
@@ -221,6 +230,10 @@
   .actions {
     display: grid;
     gap: var(--s-2);
+  }
+  .placement {
+    margin-bottom: var(--s-2);
+    font-size: var(--text-sm);
   }
   /* Wie der Spielrahmen genau bildschirmhoch: Tutorials passen sich ein, statt zu scrollen. */
   .tutorial {

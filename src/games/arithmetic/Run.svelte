@@ -1,7 +1,8 @@
 <script lang="ts">
   // Ein Lauf in einem der drei Modi (ModeId in logic.ts):
   // sprint – so viele Aufgaben wie möglich in der Zeit des Modus, Rechentypen gemischt;
-  // precision – feste Aufgabenzahl ohne Uhr; review – die fälligen Aufgaben der Wiederholungsliste.
+  // precision – feste Aufgabenzahl ohne Uhr; review – die fälligen Aufgaben der Wiederholungsliste;
+  // placement – Einstufung: zwei Aufgaben je Rechenart, danach stehen die Startlevel.
   import { flushSync, untrack } from 'svelte';
   import { timing, type Handle } from '../../core/timing';
   import { repo } from '../../data/repo';
@@ -11,11 +12,14 @@
   import {
     activeKinds,
     applyAnswer,
+    applyPlacement,
     KINDS_SETTING,
     TRICKS_SETTING,
     levelOfKind,
     outcomeIn,
     pickKind,
+    placedLevel,
+    placementProbe,
     pointsFor,
     toRecord,
     type ArithmeticState,
@@ -28,7 +32,7 @@
   let { state: initial, mode, paused, onTrial, onProgress, onFinish }: RunProps<ArithmeticState> = $props();
 
   // svelte-ignore state_referenced_locally
-  const modeId: ModeId = mode.id === 'precision' || mode.id === 'review' ? mode.id : 'sprint';
+  const modeId: ModeId = mode.id === 'precision' || mode.id === 'review' || mode.id === 'placement' ? mode.id : 'sprint';
   // svelte-ignore state_referenced_locally
   const totalMs = 'seconds' in mode.budget ? mode.budget.seconds * 1000 : null;
   /** Aufgabenzahl des Laufs; im Fehlertraining höchstens so viele, wie fällig sind. */
@@ -62,6 +66,8 @@
   let startedAt = 0;
   let pending: Handle<unknown> | null = null;
   let previous: { kind?: Kind; key?: string } = {};
+  /** Einstufung: ob die erste der beiden Aufgaben der laufenden Rechenart richtig und zügig war. */
+  let firstGood = false;
 
   const progress = () => {
     if (totalMs === null) onProgress(done / limit, `${done} / ${limit}`);
@@ -73,6 +79,11 @@
     if (modeId === 'review') {
       // Nach einer Pause kommt die verworfene Aufgabe wieder: Sie bleibt vorn, bis sie beantwortet ist.
       task = due![0]!;
+    } else if (modeId === 'placement') {
+      // Aufgabe 2k und 2k+1 gehören zur k-ten Rechenart; nach einer Pause kommt eine neue Aufgabe derselben Stufe.
+      const kind = kinds[Math.floor(done / 2)]!;
+      task = nextTask(Math.random, kind, placementProbe(done % 2 === 0 ? null : firstGood), previous.key);
+      previous = { kind, key: task.key };
     } else {
       const kind = pickKind(Math.random, previous.kind, kinds);
       task = nextTask(Math.random, kind, levelOfKind(current, kind), previous.key);
@@ -104,8 +115,11 @@
     const outcome = outcomeIn(modeId, task, correct, rtMs);
     // Das Fehlertraining wiederholt alte Aufgaben – die Level der Rechenarten bleiben, wie sie sind.
     if (modeId === 'review') due!.shift();
-    else current = applyAnswer(current, task, outcome);
-    void recordReview(repo, task, outcome);
+    else if (modeId !== 'placement') current = applyAnswer(current, task, outcome);
+    else if (done % 2 === 0) firstGood = outcome === 'good';
+    else current = applyPlacement(current, task.kind, placedLevel(firstGood, outcome === 'good'));
+    // Die Einstufung tastet nur ab – was dabei danebengeht, ist kein Fehler zum Wiederholen.
+    if (modeId !== 'placement') void recordReview(repo, task, outcome);
     done++;
     progress();
     feedback = correct ? 'good' : 'bad';
@@ -127,7 +141,8 @@
       } else {
         kinds = activeKinds(await repo.getSetting<unknown>(KINDS_SETTING, null));
       }
-      tricks = totalMs === null && (await repo.getSetting(TRICKS_SETTING, true));
+      if (modeId === 'placement') limit = 2 * kinds.length;
+      tricks = totalMs === null && modeId !== 'placement' && (await repo.getSetting(TRICKS_SETTING, true));
     })();
     return prepared;
   }

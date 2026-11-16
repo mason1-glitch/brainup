@@ -98,7 +98,8 @@ export async function playArithmetic(page: Page): Promise<void> {
   await type('0,5');
   await page.getByRole('heading', { name: 'Überschlag' }).waitFor();
   await type('1000');
-  // Sprint: Lösung aus data-answer lesen und tippen, bis die Zeit um ist.
+  // Beim ersten Mal ist das die Einstufung (20 Aufgaben), sonst der Sprint: Lösung aus data-answer lesen und tippen,
+  // bis das Ergebnis da ist.
   const result = page.getByTestId('result-headline');
   while (!(await result.isVisible())) {
     const prompt = await page.locator('.prompt.visible').elementHandle({ timeout: 2000 }).catch(() => null);

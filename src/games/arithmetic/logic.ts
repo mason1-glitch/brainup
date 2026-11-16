@@ -50,7 +50,7 @@ export function outcomeOf(task: Task, correct: boolean, rtMs: number | null): Ou
  * sprint: 60 s, Tempo zählt · precision: feste Aufgabenzahl ohne Zeitdruck · review: Fehlertraining
  * mit den fälligen Aufgaben der Wiederholungsliste.
  */
-export type ModeId = 'sprint' | 'precision' | 'review';
+export type ModeId = 'sprint' | 'precision' | 'review' | 'placement';
 
 /**
  * Wie eine Antwort im jeweiligen Modus zählt. Ohne Zeitdruck (precision) gibt es kein „langsam“:
@@ -69,6 +69,27 @@ export function applyAnswer(state: ArithmeticState, task: Task, outcome: Outcome
   if (outcome === 'slow') return state;
   const stair = updateStaircase(STAIRCASE, state.stairs[task.kind], outcome === 'good');
   return { stairs: { ...state.stairs, [task.kind]: stair } };
+}
+
+/**
+ * Einstufung (Modus `placement`): je Rechenart zwei Aufgaben. Die erste auf Level 4; war sie richtig
+ * und zügig, folgt eine auf Level 7, sonst eine auf Level 2.
+ * @param firstGood null = erste Aufgabe der Rechenart
+ */
+export function placementProbe(firstGood: boolean | null): number {
+  if (firstGood === null) return 4;
+  return firstGood ? 7 : 2;
+}
+
+/** Startlevel aus den beiden Einstufungsaufgaben – nie höher als das, was wirklich gelöst wurde. */
+export function placedLevel(firstGood: boolean, secondGood: boolean): number {
+  if (firstGood) return secondGood ? 7 : 5;
+  return secondGood ? 3 : 1;
+}
+
+/** Setzt den Staircase einer Rechenart frisch auf das eingestufte Level. */
+export function applyPlacement(state: ArithmeticState, kind: Kind, level: number): ArithmeticState {
+  return { stairs: { ...state.stairs, [kind]: { ...initStaircase(STAIRCASE), value: level } } };
 }
 
 /** Einstellung: welche Rechenarten Sprint und Präzision mischen (Liste von `Kind`). */

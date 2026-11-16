@@ -16,6 +16,8 @@ export const arithmetic = defineGame<ArithmeticState>({
     { id: 'precision', title: 'Präzision', budget: { trials: 15 } },
     { id: 'review', title: 'Fehlertraining', budget: { trials: 10 } },
   ],
+  // Zwei Aufgaben je Rechenart; setzt die Startlevel (logic.ts, placementProbe/placedLevel).
+  placement: { id: 'placement', title: 'Einstufung', budget: { trials: 20 } },
   stateVersion: 1,
   initialState,
   level: levelOf,

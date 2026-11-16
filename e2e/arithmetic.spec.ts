@@ -11,6 +11,7 @@ async function type(page: Page, input: string, timeout?: number): Promise<void> 
 
 test('Kopfrechnen: Tutorial, 60-s-Sprint, Ergebnis', async ({ page }) => {
   await openGame(page, 'arithmetic');
+  await page.getByRole('button', { name: 'Ohne Einstufung' }).click();
   await page.getByRole('button', { name: 'Kurz üben' }).click();
 
   // Tutorial: erst ein Fehler (Lösung erscheint, Aufgabe kommt wieder), dann drei richtige Schritte.
@@ -65,7 +66,9 @@ test('Kopfrechnen: Tutorial, 60-s-Sprint, Ergebnis', async ({ page }) => {
 });
 
 /** Spielt das Tutorial fehlerfrei; danach beginnt der Lauf im gewählten Modus. */
-async function tutorial(page: Page): Promise<void> {
+async function tutorial(page: Page, skipPlacement = true): Promise<void> {
+  // Beim allerersten Mal bietet das Spiel eine Einstufung an; die meisten Läufe hier prüfen einen bestimmten Modus.
+  if (skipPlacement) await page.getByRole('button', { name: 'Ohne Einstufung' }).click();
   await page.getByRole('button', { name: 'Kurz üben' }).click();
   await type(page, '13');
   await expect(page.getByRole('heading', { name: 'Mit Komma' })).toBeVisible();
@@ -112,8 +115,10 @@ test('Kopfrechnen: Präzision – 15 Aufgaben ohne Uhr, Fehler landen in der Wie
     (window as unknown as Record<string, unknown>).__brainupE2E = true;
   });
   await page.goto('#/spiel/arithmetic?mode=precision');
+  // Erst ohne Einstufung erscheint die Modusauswahl; der Modus aus der Adresse ist vorgewählt.
+  await page.getByRole('button', { name: 'Ohne Einstufung' }).click();
   await expect(page.getByRole('radio', { name: 'Präzision' })).toBeChecked();
-  await tutorial(page);
+  await tutorial(page, false);
 
   await expect(page.getByText('0 / 15')).toBeVisible();
   for (let i = 1; i <= 15; i++) {
@@ -214,7 +219,21 @@ test('Kopfrechnen: In den Einstellungen gewählte Rechenarten gelten für den La
   await kind('Prozent').click();
   await expect(kind('Einmaleins')).toBeEnabled();
 
-  // Die Auswahl ist gespeichert.
+  // Die Auswahl ist gespeichert (erst nachsehen, dann neu laden – das Schreiben braucht einen Augenblick).
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<unknown>((resolve) => {
+            const open = indexedDB.open('brainup');
+            open.onsuccess = () => {
+              const get = open.result.transaction('settings').objectStore('settings').get('arithmetic.kinds');
+              get.onsuccess = () => resolve(get.result?.value);
+            };
+          }),
+      ),
+    )
+    .toEqual(['table', 'percent']);
   await page.reload();
   await expect(kind('Prozent')).toBeChecked();
   await expect(kind('Addition')).not.toBeChecked();
@@ -276,10 +295,56 @@ test('Kopfrechnen: Nach einem Fehler erscheint ein Rechentrick – abschaltbar',
   await page.getByRole('switch', { name: 'Rechentrick nach Fehlern' }).click();
   await expect(page.getByRole('switch', { name: 'Rechentrick nach Fehlern' })).not.toBeChecked();
   await page.goto('#/spiel/arithmetic?mode=precision');
+  // Noch kein Lauf wurde beendet – die Einstufung wird wieder angeboten.
+  await page.getByRole('button', { name: 'Ohne Einstufung' }).click();
   await page.getByRole('button', { name: 'Start' }).click();
   const prompt = await page.locator('.prompt.visible').elementHandle();
   await type(page, '99999999');
   await prompt!.waitForElementState('hidden');
   await expect(page.getByTestId('trick')).toHaveCount(0);
   await expect(page.getByText('1 / 15')).toBeVisible();
+});
+
+test('Kopfrechnen: Einstufung beim ersten Mal setzt die Startlevel', async ({ page }) => {
+  await openGame(page, 'arithmetic');
+  await expect(page.getByText('Zuerst eine kurze Einstufung')).toBeVisible();
+  await expect(page.getByRole('radiogroup', { name: 'Modus' })).toHaveCount(0);
+  await tutorial(page, false);
+
+  // 20 Aufgaben: je Rechenart erst Level 4, dann – weil der Bot richtig und schnell antwortet – Level 7.
+  await expect(page.getByText('0 / 20')).toBeVisible();
+  for (let i = 1; i <= 20; i++) await solve(page);
+  await expect(page.getByTestId('result-headline')).toBeVisible();
+
+  const stored = await page.evaluate(
+    () =>
+      new Promise<{ trials: { kind: string; difficulty: number }[]; mode: string; reviews: number; stairs: Record<string, { value: number }> }>((resolve) => {
+        const open = indexedDB.open('brainup');
+        open.onsuccess = () => {
+          const tx = open.result.transaction(['trials', 'sessions', 'reviews', 'gameState']);
+          const trials = tx.objectStore('trials').getAll();
+          const sessions = tx.objectStore('sessions').getAll();
+          const reviews = tx.objectStore('reviews').count();
+          const state = tx.objectStore('gameState').get('arithmetic');
+          tx.oncomplete = () =>
+            resolve({ trials: trials.result, mode: sessions.result[0].mode, reviews: reviews.result, stairs: state.result.state.stairs });
+        };
+      }),
+  );
+  expect(stored.mode).toBe('placement');
+  expect(stored.trials.map((t) => t.difficulty)).toEqual(Array.from({ length: 20 }, (_, i) => (i % 2 === 0 ? 4 : 7)));
+  // Je Rechenart zwei Aufgaben hintereinander, alle zehn Rechenarten.
+  stored.trials.forEach((t, i) => expect(t.kind).toBe(stored.trials[i - (i % 2)]!.kind));
+  expect(new Set(stored.trials.map((t) => t.kind)).size).toBe(10);
+  expect(Object.values(stored.stairs).map((s) => s.value)).toEqual(Array.from({ length: 10 }, () => 7));
+  expect(stored.reviews).toBe(0);
+
+  // Danach ist die Einstufung erledigt: normale Einstiegsseite mit Modusauswahl auf dem neuen Level.
+  await page.getByRole('button', { name: 'Fertig' }).click();
+  // Erst die Spieleliste abwarten: Sonst überholt der nächste Seitenwechsel den von „Fertig“.
+  await expect(page.getByRole('heading', { name: 'Spiele' })).toBeVisible();
+  await page.goto('#/spiel/arithmetic');
+  await expect(page.getByText('Level 7', { exact: true })).toBeVisible();
+  await expect(page.getByRole('radiogroup', { name: 'Modus' })).toBeVisible();
+  await expect(page.getByText('Zuerst eine kurze Einstufung')).toHaveCount(0);
 });

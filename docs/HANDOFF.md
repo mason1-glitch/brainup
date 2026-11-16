@@ -26,11 +26,11 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 - **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele (vom Nutzer bestätigt: „Passt so“).
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`. Für Aufgaben mit vier Antwortbildern sind `paperfold` und `sections` die Muster (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
-- **Abnahme zuletzt:** `npm test`, `npm run build`, `npm run e2e` (20 Läufe im iPhone-Viewport, ≈ 6 min) grün.
+- **Abnahme zuletzt:** `npm test`, `npm run build`, `npm run e2e` (iPhone-Profil 32 Läufe ≈ 8 min, Pixel-Profil 29 Läufe ≈ 4 min) grün.
 
 **Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 4, Pixel-Profil; danach Punkt 5, Einstufungslauf).
+**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 6, Einstellungen).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -61,10 +61,10 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
    - [x] Rechentrick nach Fehlern, je Typ: `arithmetic/tricks.ts` rechnet für genau die Aufgabe einen Weg vor; gezeigt in Präzision und Fehlertraining, abschaltbar (Einstellung `arithmetic.tricks`).
 4. **Messung**
    - [x] Timing-Log über 200 Darbietungen: Seite `#/dev/timing` (Link „Timing-Messung“ unten in den Einstellungen) misst Soll gegen Ist auf dem jeweiligen Gerät; `e2e/timing.spec.ts` führt dieselbe Messung aus und verlangt mindestens 198 von 200 auf ±1 Frame. Auswertung in `src/core/timingReport.ts` (getestet). **Auf dem echten iPhone noch nicht abgelesen** – dem Nutzer ist gesagt, wo er sie findet.
-   - [ ] Pixel-Profil in `playwright.config.ts`, CI-Workflow anpassen (Chromium installieren). Wird die CI zu langsam, dürfen die langen Läufe (Blickfeld bis Stufe 3, Tagesprogramm) nur im iPhone-Profil laufen – begründen.
+   - [x] Pixel-Profil: Playwright-Projekt `pixel` (Chromium, `devices['Pixel 7']`) neben `iphone`; in der CI ein eigener, paralleler Job. Drei besonders lange Läufe (Tag `@lang`: Blickfeld über drei Stufen, N-Back über zwei Blöcke, Timing-Messung) laufen nur im iPhone-Profil – alles andere, auch Tagesprogramm und Offline-Lauf, in beiden.
 5. **Phase 3 – Fortschritt**
    - [x] Seite „Fortschritt“: Wochenziel (Tage mit Training, Standard 4), Kalender zum Blättern, je Spiel Level-Verlauf (geglättet), Trefferquote, Median-Zeit und Bestwert je Modus, Tabelle der Rechenarten. Rechenkerne in `src/progress/stats.ts` (D18), Abfragen `repo.sessionsBetweenDays`/`trialsOfGame`, `e2e/progress.spec.ts`. Offen geblieben: Das Wochenziel lässt sich noch nicht einstellen (Einstellung `weeklyGoal` wird schon gelesen – Schalter dafür gehört zu Punkt 6), Bestzeiten je Tafelgröße der Zahlensuche und Verläufe je Rechenart über die Zeit zeigt die Seite noch nicht.
-   - [ ] Einstufungslauf beim ersten Start: Startwerte der Staircases setzen.
+   - [x] Einstufungslauf beim ersten Start: fürs Kopfrechnen als Modus `placement` (20 Aufgaben, setzt die Startlevel je Rechenart); die anderen Spiele brauchen keinen (D19).
 6. **Phase 4 – Rest**
    - [ ] Einstellungen: Ton, Haptik, reduzierte Bewegung (`data-motion="reduced"` am `<html>`), Sitzungslänge, Umfang des Tagesprogramms (Einstellung `daily` in der Form `DailyConfig`, wird von „Heute“ schon gelesen).
    - [ ] Erinnerung als `.ics`-Datei.
@@ -141,6 +141,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Rechenarten:** Die Einstellung `arithmetic.kinds` (Liste von `Kind`) liest der Lauf einmal beim Start über `activeKinds()` – leer, fehlend oder unbekannt heißt „alle“. Die Schalter kommen aus der neuen Basiskomponente `src/ui/Switch.svelte` (im Styleguide); für Ton, Haptik und Bewegung in Phase 4 wiederverwenden.
 - **Rechentricks** (`arithmetic/tricks.ts`): `trickFor(task)` liefert Zeilen – Gleichungsketten („a = b = c“, beim Überschlag „a ≈ b = c“) oder kurze Sätze ohne „=“. Der Test `tricks.test.ts` rechnet **jede** Gleichung mit einem eigenen kleinen Parser nach (über alle Typen × Level × 200 Seeds) und prüft, dass der Weg bei der Lösung ankommt; er hat beim Schreiben einen falschen Prozent-Trick gefunden. Wer einen Trick ergänzt, hält sich an diese Zeilenform, sonst kann der Test ihn nicht prüfen. Beim Überschlag wird nur ein Rundungsweg gezeigt, dessen Ergebnis wirklich in der Toleranz liegt.
 - **Trick im Lauf:** nur ohne Uhr. Nach einem Fehler mit Trick wartet der Lauf auf „Weiter“ (kein automatisches Weiter); der Trick liegt über der Zahlentastatur (`TaskPad.svelte`, `.pad`), damit die Aufgabe nicht springt. Die Speicherform einer Aufgabe (`TaskRecord`) trägt dafür jetzt die Rechenvorschrift `expr`; ältere Einträge ohne sie bleiben spielbar, haben aber keinen Trick.
+- **Einstufung** (D19): `GameDefinition.placement` ist optional; der Host bietet sie an, solange kein Lauf des Spiels beendet wurde (`played` in `Play.svelte`). Der Knopf heißt bewusst „Einstufung beginnen“ und nicht „… starten“ – Playwright findet Knöpfe über Teiltexte, „Start“ soll eindeutig bleiben. In E2E-Läufen, die einen bestimmten Modus prüfen, zuerst „Ohne Einstufung“ tippen (`tutorial()` in `e2e/arithmetic.spec.ts`); der Bot `playArithmetic` spielt beim ersten Mal die Einstufung.
 - **Wertung:** `summarize` kennt den Modus nicht (D5); „Punkte“ und „Richtig x von y“ gelten für alle drei. Bestwerte vergleicht der Host je Modus.
 - **E2E mit Fälligkeiten:** `page.clock.setFixedTime` stellt nur `Date.now()` fest; Bildtakt und Timing-Engine laufen weiter. So lässt sich „elf Minuten später“ prüfen (`e2e/arithmetic.spec.ts`).
 
@@ -148,6 +149,8 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 
 - **Timing-Seite** (`src/routes/dev/Timing.svelte`): 200 Darbietungen mit 1 bis 15 Frames Dauer über `timing.present`, ausgewertet mit `reportTiming()`. Lokal (Playwright-WebKit, 60 Hz): 200 von 200 auf ±1 Frame, größte Abweichung 6 ms.
 - **Beobachtung für das Red Team:** Die Ist-Dauer liegt dort im Mittel etwa 0,5 % unter dem Soll (15 Frames: 248,6 statt 250,0 ms) – der Bildtakt des Headless-WebKit ist offenbar etwas schneller als die 60 Hz, auf die `calibrate()` einrastet (±4 %). Auf dem iPhone mit der Seite nachmessen; ist es dort genauso, die Einrast-Toleranz in `measureFrameMs` enger fassen oder den gemessenen Median direkt nehmen.
+- **Zwei Profile:** `npm run e2e` spielt `iphone` (WebKit) und `pixel` (Chromium); einzeln mit `npx playwright test --project=iphone`. Lokal einmalig `npx playwright install webkit chromium`. In der CI laufen sie als zwei parallele Jobs (`test`, `pixel`); veröffentlicht wird der Build aus `test`, aber erst wenn beide grün sind. Der Job `test` braucht inzwischen ≈ 14 von 20 Minuten – neue lange Läufe mit `{ tag: '@lang' }` kennzeichnen oder das Zeitlimit anheben.
+- **Chromium ist schneller als WebKit:** Nach „Fertig“ erst auf die Spieleliste warten, bevor der Test die nächste Adresse aufruft – sonst überholt der zweite Seitenwechsel den ersten und die App bleibt auf dem Ergebnisbildschirm. Nach dem Ändern einer Einstellung erst in IndexedDB nachsehen, dann neu laden (`e2e/arithmetic.spec.ts`).
 - **Warum 198 statt 200 im Test:** Die Engine protokolliert ehrlich, wenn der Rechner einen Frame zu lange festhält. Unter CI-Last (mehrere Browser parallel) kann das vereinzelt passieren; mehr als zwei Ausreißer in 200 wären ein Fehler der Engine.
 
 ### Schritt 5 – Fortschritt

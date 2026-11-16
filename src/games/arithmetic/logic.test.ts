@@ -7,7 +7,7 @@ import { createRepo } from '../../data/repo';
 import type { Trial } from '../../data/types';
 import { answerInput, check, generate, KINDS } from './generators';
 import { arithmetic } from './index';
-import { activeKinds, applyAnswer, fromRecord, initialState, levelOf, levelOfKind, outcomeIn, outcomeOf, pickKind, slowMs, summarize, toRecord } from './logic';
+import { activeKinds, applyAnswer, applyPlacement, fromRecord, initialState, levelOf, levelOfKind, outcomeIn, outcomeOf, pickKind, placedLevel, placementProbe, slowMs, summarize, toRecord } from './logic';
 import { dueTasks, recordReview } from './reviews';
 import { trickFor } from './tricks';
 
@@ -125,6 +125,37 @@ describe('Auswahl der Rechenarten', () => {
     }
     expect([...seen].sort()).toEqual(['div', 'estimate', 'power']);
     expect(pickKind(rng, 'add', activeKinds(['add']))).toBe('add');
+  });
+});
+
+describe('Einstufung', () => {
+  it('zwei Aufgaben je Rechenart: erst Level 4, dann 7 oder 2; das Startlevel folgt den Antworten', () => {
+    expect(placementProbe(null)).toBe(4);
+    expect(placementProbe(true)).toBe(7);
+    expect(placementProbe(false)).toBe(2);
+    // [erste gut, zweite gut] → Level. Nie höher als die schwerste gelöste Aufgabe, nie tiefer als Level 1.
+    const table: [boolean, boolean, number][] = [[true, true, 7], [true, false, 5], [false, true, 3], [false, false, 1]];
+    for (const [first, second, level] of table) {
+      expect(placedLevel(first, second)).toBe(level);
+      const solved = Math.max(first ? 4 : 0, second ? placementProbe(first) : 0);
+      expect(level).toBeLessThanOrEqual(Math.max(1, solved + 1));
+    }
+    expect(table.map(([, , level]) => level)).toEqual([7, 5, 3, 1]);
+  });
+
+  it('setzt nur die eine Rechenart, mit frischem Staircase; ein Spieler, der alles kann, landet überall auf 7', () => {
+    const before = applyAnswer(initialState(), generate(seededRng(1), 'add', 1), 'good');
+    const after = applyPlacement(before, 'mul', 5);
+    expect(levelOfKind(after, 'mul')).toBe(5);
+    expect(after.stairs.mul).toEqual({ value: 5, streak: 0, lastMove: 0, reversals: 0, trials: 0 });
+    expect(after.stairs.add).toEqual(before.stairs.add);
+    let state = initialState();
+    for (const kind of KINDS) state = applyPlacement(state, kind, placedLevel(true, true));
+    expect(levelOf(state)).toBe(7);
+    expect(arithmetic.placement).toEqual({ id: 'placement', title: 'Einstufung', budget: { trials: 2 * KINDS.length } });
+    // In der Einstufung zählt das Tempo wie im Sprint.
+    const task = generate(seededRng(3), 'mul', 4);
+    expect(outcomeIn('placement', task, true, slowMs('mul', 4) + 1)).toBe('slow');
   });
 });
 
