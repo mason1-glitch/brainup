@@ -1,12 +1,13 @@
 import { arithmetic } from './arithmetic';
 import { paperfold } from './paperfold';
 import { rotation } from './rotation';
+import { schulte } from './schulte';
 import { sections } from './sections';
 import type { GameDefinition } from './types';
 import { ufov } from './ufov';
 
 /** Alle Spiele der App. Neue Spiele hier eintragen (siehe docs/ADDING_A_GAME.md). */
-export const games: GameDefinition[] = [rotation, ufov, paperfold, sections, arithmetic];
+export const games: GameDefinition[] = [rotation, ufov, paperfold, sections, arithmetic, schulte];
 
 export function findGame(id: string): GameDefinition | undefined {
   return games.find((g) => g.id === id);

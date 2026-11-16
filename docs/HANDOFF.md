@@ -11,21 +11,22 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
 - **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang, Sicherung als JSON-Datei (D15).
 - **Design** (`src/design/`, `src/ui/`): Tokens, Basiskomponenten, Styleguide unter `#/dev/styleguide`.
 - **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt ist ein Platzhalter; Einstellungen können Hell/Dunkel und die Datensicherung; Spiel-Host `Play.svelte`.
-- **Fünf Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
+- **Sechs Spiele** (`src/games/`), jeweils mit Tutorial, Adaptivität, Tests und E2E-Lauf:
   - `rotation` – Mentale Rotation (chirale Würfelfiguren, SVG)
   - `ufov` – „Blickfeld“ (Verarbeitungsgeschwindigkeit, frame-genaue Darbietung, drei Stufen)
   - `paperfold` – Papierfalten (Faltfolge, Lochung, vier Lochmuster)
   - `sections` – Schnittansichten (Körper mit Schnittebene, vier Formen)
   - `arithmetic` – Kopfrechnen (zehn Typen × zehn Level, Sprint-Modus)
+  - `schulte` – Zahlensuche (Aufwärm-Spiel: Tafel 3×3 bis 6×6, dann rückwärts und im Wechsel)
 - **Tagesprogramm** (D6, D14): auf „Heute“ starten, im Host Schritt für Schritt spielen, am selben Tag fortsetzen.
 - **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele (vom Nutzer bestätigt: „Passt so“).
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`. Für Aufgaben mit vier Antwortbildern sind `paperfold` und `sections` die Muster (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
-- **Abnahme zuletzt:** `npm test` (115 Tests), `npm run build`, `npm run e2e` (14 Läufe im iPhone-Viewport, ≈ 5 min) grün.
+- **Abnahme zuletzt:** `npm test` (129 Tests), `npm run build`, `npm run e2e` (16 Läufe im iPhone-Viewport, ≈ 5 min) grün.
 
 **Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 2, `schulte`).
+**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 2, `corsi`).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -45,7 +46,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
    - [x] JSON-Export und -Import aller Daten über `repo` (`exportAll`/`importAll`, `src/data/backup.ts`), mit `SCHEMA_VERSION`; der Import führt zusammen und löscht nie (D15). Tests in `src/data/backup.test.ts` (verlustfrei, zusammenführen, ablehnen, Upgrade einer älteren Sicherung).
    - [x] Datei-Weg fürs iPhone: „Sicherung erstellen“ → „Datei speichern“ öffnet das Teilen-Menü (`navigator.share` mit Datei), sonst Download; „Sicherung einlesen“ nimmt eine Datei an (`src/app/backupFile.ts`, Karte „Daten“ in den Einstellungen, `e2e/backup.spec.ts`). **Auf dem echten iPhone noch nicht bestätigt** – dem Nutzer ist gesagt, wie er es testet.
 2. **Aufwärm-Spiele** per `/neues-spiel <id>` (Bereich `warmup`), je Spiel ein Schritt, in dieser Reihenfolge. IDs, Titel, Kurzzeile und Beschreibung wörtlich aus `docs/GAMES.md` (Test `registry.test.ts`; Kurzzeile und Beschreibung beginnen mit „Aufwärm-Spiel“). Jedes Spiel in 1–3 min spielbar, adaptiv über den Staircase, Aufgaben-Korrektheit unabhängig geprüft; Darbietung, Antwortfenster und Wartezeiten nur über die Timing-Engine, zeitbegrenzte Reize mit Soll/Ist in den Rohdaten wie bei `ufov`.
-   - [ ] `schulte` – Zahlensuche. Mit dem ersten Aufwärm-Spiel stellt `planDaily` Aufwärmen an den Anfang des Tagesprogramms: `e2e/program.spec.ts` (Reihenfolge und Schrittzahl stehen dort fest) und die Bots in `e2e/helpers.ts` anpassen.
+   - [x] `schulte` – Zahlensuche. Das Tagesprogramm beginnt jetzt mit einem Aufwärm-Spiel (4 Schritte); `e2e/program.spec.ts` und der Bot `playSchulte` in `e2e/helpers.ts` sind angepasst.
    - [ ] `corsi` – Blockfolge.
    - [ ] `flanker` – Pfeilfokus.
    - [ ] `nback` – N-Back.
@@ -100,8 +101,8 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Ablauf** (D14): „Heute“ plant mit `planDaily`, legt einen `ProgramRun` an und öffnet `#/spiel/<id>?mode=…&run=<id>`. `Play.svelte` lädt den Durchlauf, hakt nach einem beendeten Lauf den Schritt ab (`completeStep`) und führt mit „Weiter“ zum nächsten, nach dem letzten mit „Fertig“ auf „Heute“. Alle Regeln stehen als reine Funktionen in `src/program/run.ts` (getestet).
 - **Fortsetzen:** „Heute“ zeigt den offenen Durchlauf des Tages (`currentRun`); ein beendeter bietet „Noch ein Durchlauf“. Durchläufe früherer Tage werden nicht fortgesetzt.
 - **`recent`:** aus den letzten fünf Sitzungen je Spiel, abgebrochene zählen nicht (`recentGames`). Dadurch wechseln die Trainingsspiele von Durchlauf zu Durchlauf.
-- **Text auf „Heute“:** nennt nur die Bereiche, die im Plan wirklich vorkommen, und keine Dauer – solange es keine Aufwärm-Spiele gibt, steht dort „Training, Kopfrechnen“.
-- **Bots:** `e2e/helpers.ts` hat `playRotation`, `playUfov`, `playArithmetic` (fehlerfrei von der Einstiegsseite bis zum Ergebnis) – für neue Programm-Läufe ergänzen.
+- **Text auf „Heute“:** nennt nur die Bereiche, die im Plan wirklich vorkommen, und keine Dauer.
+- **Bots:** `e2e/helpers.ts` hat `playSchulte`, `playRotation`, `playUfov`, `playArithmetic` (fehlerfrei von der Einstiegsseite bis zum Ergebnis) – für neue Programm-Läufe ergänzen.
 
 ## Wissen aus Runde 3
 
@@ -113,13 +114,21 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Zwei Tipps beim Export sind Absicht** (Safari verlangt für das Teilen-Menü eine unmittelbare Nutzeraktion, D15) – nicht zu einem Knopf zusammenlegen.
 - **E2E:** Playwright-WebKit auf dem Mac kennt `navigator.canShare`, in der CI (Linux) nicht. `e2e/backup.spec.ts` legt deshalb in jedem Lauf fest, welcher Weg gilt (Download erzwingen oder `share` durch eine Attrappe ersetzen).
 
+### Schritt 2 – Aufwärm-Spiele
+
+- **Zahlensuche** (`schulte/logic.ts`): Ein Durchgang ist eine **ganze Tafel**, ein Lauf hat drei. `task` = Tafel (Level, Spalten, Zeilen, Reihenfolge, Zellen), `response.taps` = jeder Tipp mit Zahl und Zeit seit Erscheinen der Tafel (auch Fehltipps), `rtMs` = Zeitpunkt des letzten Tipps, `correct` = in der Zielzeit geschafft (eine Sekunde je Zahl plus eine). `kind` = Tafelgröße (`4x4`, `6x6-down`, `6x6-alt`) – daraus lassen sich später Bestzeiten je Tafelgröße bilden. `replay()` ist die einzige Stelle, die Tipps auswertet; Lauf, Wertung und Tests nutzen sie, der Test hat dazu einen eigenen Löser.
+- **Schwierigkeit:** Die Zielzeit je Zahl bleibt gleich, die Suche dauert auf großen Tafeln aber je Zahl länger – deshalb pendelt sich das Level dort ein, wo man eine Sekunde je Zahl gerade noch hält. 2-down-1-up (nur drei Tafeln je Lauf), erste Schritte in Zweiersprüngen. Die Zielzeit ist geschätzt, nicht gemessen: Erreicht der Nutzer Level 7–9 sehr schnell oder nie, `PAR_PER_NUMBER_MS` anpassen (Red Team).
+- **Trefferquote** im Ergebnis zählt Tipps, nicht Tafeln; „Median-Zeit“ ist die Zeit je gefundener Zahl.
+- **Tafel-Layout:** `Board.svelte` passt das Feld über Container-Abfragen (`cqw`/`cqh`) in den freien Platz ein – das Muster eignet sich auch für `corsi` und `nback`.
+- **Registry-Reihenfolge:** Neue Spiele hinten anhängen; die Reihenfolge innerhalb eines Bereichs entscheidet bei Gleichstand im Tagesprogramm (`planDaily`), und `e2e/program.spec.ts` legt die Abfolge fest.
+
 ## Noch nicht geprüft
 
 - Sicherung auf dem echten iPhone: ob das Teilen-Menü die `.json`-Datei annimmt („In Dateien sichern“) und ob „Sicherung einlesen“ sie in der Dateien-App auswählen lässt. Meldet der Nutzer ein Problem: `accept` am Datei-Feld lockern bzw. den Dateityp der Sicherung auf `text/plain` stellen und erneut testen lassen.
 
 - Auf dem echten iPhone wurde nichts systematisch geprüft; der Nutzer spielt dort täglich, alle Testläufe liefen in Playwright-WebKit mit iPhone-15-Profil.
 - Barrierefreiheit wurde nicht mit axe geprüft. Die Tippflächen im Blickfeld (Antwortphase) haben einen schwachen Rand (`--line`) und erfüllen vermutlich nicht 3 : 1 Kontrast.
-- Papierfalten und Schnittansichten hat nur der Bot gespielt: Ob die Level gleichmäßig schwerer werden, zeigt erst das Spielen (Red Team).
+- Papierfalten, Schnittansichten und Zahlensuche hat nur der Bot gespielt: Ob die Level gleichmäßig schwerer werden, zeigt erst das Spielen (Red Team).
 - Im Tutorial von Papierfalten und Schnittansichten sind die vier Antwortfelder auf kleinen Bildschirmen klein (der Erklärtext braucht Platz).
 
 ## Bekannte Fallstricke
@@ -141,6 +150,6 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - Staircase-Schwelle streut: ±10 % erst nach einigen hundert Durchgängen, eine Sitzung liegt bei etwa ±20 % (D10). Verläufe glätten, Bestwerte nicht auf einer einzelnen Schwellenschätzung aufbauen.
 - `<meta name="theme-color">` folgt dem System-Schema, nicht der App-Einstellung Hell/Dunkel.
 - iOS: Daten bleiben nur in der installierten Home-Bildschirm-App zuverlässig erhalten; Vibration ist im Browser kaum verfügbar.
-- Spiel-IDs (`rotation`, `ufov`, `paperfold`, `sections`, `arithmetic`) und Modus-IDs stehen in gespeicherten Daten – nicht umbenennen. Der Anzeigename darf sich ändern – dann in `docs/GAMES.md` **und** in `index.ts` des Spiels, sonst schlägt `registry.test.ts` fehl.
+- Spiel-IDs (`rotation`, `ufov`, `paperfold`, `sections`, `arithmetic`, `schulte`) und Modus-IDs stehen in gespeicherten Daten – nicht umbenennen. Der Anzeigename darf sich ändern – dann in `docs/GAMES.md` **und** in `index.ts` des Spiels, sonst schlägt `registry.test.ts` fehl.
 - Quellen in GAMES.md: nur nachgeschlagene Angaben (Crossref/PubMed), keine DOIs aus dem Gedächtnis. Aussagen über Studien stützen sich dort nur auf die Zusammenfassungen.
 - Ändert sich die Form eines Schwierigkeitszustands: `stateVersion` erhöhen und `migrateState` schreiben, sonst startet das Spiel für alle wieder bei Level 1.

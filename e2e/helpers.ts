@@ -22,6 +22,13 @@ export async function drag(page: Page, testId: string): Promise<void> {
 // ---------- Bots, die ein Spiel von der Einstiegsseite bis zum Ergebnis fehlerfrei spielen ----------
 // Voraussetzung: Bot-Modus an (`__brainupE2E`), Einstiegsseite des Spiels offen, Tutorial noch nicht gespielt.
 
+export async function playSchulte(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Kurz üben' }).click();
+  // Tutorial (4 + 9 Zahlen), dann drei Tafeln: zweimal 3×3, einmal 4×4.
+  for (let i = 0; i < 4 + 9 + 9 + 9 + 16; i++) await page.locator('.board.visible .cell[data-correct="true"]').click();
+  await page.getByTestId('result-headline').waitFor();
+}
+
 export async function playRotation(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Kurz üben' }).click();
   for (const name of ['Weiter', 'Verstanden']) {

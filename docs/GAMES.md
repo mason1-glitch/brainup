@@ -22,7 +22,7 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | Papierfalten | `paperfold` | Training | räumliches Vorstellen: Falten und Entfalten | vorhanden |
 | Schnittansichten | `sections` | Training | räumliches Vorstellen: Körper und Schnittflächen | vorhanden |
 | Kopfrechnen | `arithmetic` | Kopfrechnen | Rechenfertigkeit und Tempo | vorhanden |
-| Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | geplant |
+| Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | vorhanden |
 | Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | geplant |
 | Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | geplant |
 | N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | geplant |
@@ -90,9 +90,9 @@ Kriterien aus PLAN.md: in 1–3 Minuten spielbar, adaptiv steigerbar, per Touch 
 
 **Verworfen:** *Stroop* (Farbwörter) – braucht vier Farbtasten und sicheres Farbensehen und fordert Ähnliches wie der Pfeilfokus; *Go/No-Go* – zu eintönig, kaum sinnvoll steigerbar; *Zahlen verbinden (Trail Making)* – deckt sich mit der Zahlensuche; *einfache Reaktionszeit* – nicht adaptiv, nach zwei Runden reizlos.
 
-### Zahlensuche · `schulte` (geplant)
+### Zahlensuche · `schulte`
 
-- **Fordert:** In einer Tafel mit durcheinandergewürfelten Zahlen der Reihe nach 1, 2, 3 … antippen – schnelle visuelle Suche und Blickführung.
+- **Fordert:** In einer Tafel mit durcheinandergewürfelten Zahlen der Reihe nach 1, 2, 3 … antippen – schnelle visuelle Suche und Blickführung. Adaptiv über die Tafelgröße (3×3 bis 6×6), danach über die Reihenfolge (rückwärts, im Wechsel kleinste/größte); Maßstab ist eine Zielzeit von einer Sekunde je Zahl.
 - **Quelle:** bekannt als Schulte-Tabelle; keine geprüfte Primärquelle – deshalb ohne Literaturangabe.
 - **Titel:** Zahlensuche
 - **Kurzzeile:** Aufwärm-Spiel: Zahlen der Reihe nach finden
