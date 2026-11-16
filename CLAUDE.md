@@ -78,8 +78,10 @@ Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgesc
 
 ## Übergaberegeln
 
-- An dieser App arbeiten nacheinander mehrere Modelle (erst Fable, dann Opus). Jede Sitzung kann jederzeit enden.
-- Nach jedem abgeschlossenen Schritt: Tests grün → Commit → Push → `docs/HANDOFF.md` aktualisieren (Status, nächster Schritt, Fallstricke).
+- **Fable arbeitet, solange Kontingent da ist** – an allen offenen Aufgaben, auch an neuen Spielen. Opus springt nur ein, wenn Fable gerade nicht verfügbar ist, und macht beim ersten offenen Punkt in `docs/HANDOFF.md` weiter; danach übernimmt wieder Fable. Jede Sitzung kann jederzeit enden.
+- Kontingent sparen: Reine Fleißarbeit (Konfiguration, Boilerplate, wiederholte Umbenennungen) darf an Subagenten (Sonnet) gehen; das Ergebnis prüft das arbeitende Modell selbst. Keine Lockfiles, `node_modules` oder Build-Ausgaben lesen; lange Läufe im Hintergrund starten und währenddessen weiterarbeiten.
+- Nach jedem abgeschlossenen Schritt: Tests grün → Commit → Push → CI-Ergebnis auf GitHub abwarten (lokal grün reicht nicht) → `docs/HANDOFF.md` aktualisieren (Status, nächster Schritt, Fallstricke).
+- Gearbeitet wird auf einem Branch von `main`. Nach dem ersten erledigten Schritt einen Pull Request nach `main` öffnen und auf demselben Branch weiterpushen. Ist er inzwischen gemergt: neuer Branch von `main`, neuer Pull Request. Gemergt wird nur vom Nutzer.
 - Architekturentscheidungen kommen in `docs/DECISIONS.md` (Entscheidung, Grund, verworfene Alternative). Bestehende Entscheidungen nur nach Rückfrage beim Nutzer ändern.
 - Beim Start einer Sitzung zuerst `git status` prüfen: Unfertige Änderungen zu Ende führen oder begründet verwerfen.
 
