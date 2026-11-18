@@ -123,6 +123,48 @@ describe('present', () => {
   });
 });
 
+describe('every', () => {
+  it('meldet in jedem Frame die vergangene Zeit, beginnend bei 0, bis zum Abbruch', () => {
+    const frame = 1000 / 60;
+    const c = fakeClock(frame);
+    const engine = createTimingEngine(c.clock);
+    const seen: number[] = [];
+    const h = engine.every((ms) => seen.push(ms));
+    for (let i = 0; i < 4; i++) c.step();
+    expect(seen).toHaveLength(4);
+    seen.forEach((ms, i) => expect(ms).toBeCloseTo(i * frame, 6));
+    h.cancel();
+    for (let i = 0; i < 4; i++) c.step();
+    expect(seen).toHaveLength(4);
+    expect(c.pending()).toBe(0);
+  });
+
+  it('ein Abbruch aus dem eigenen Aufruf heraus beendet die Uhr sofort (Countdown am Ziel)', () => {
+    const c = fakeClock(1000 / 60);
+    const engine = createTimingEngine(c.clock);
+    let calls = 0;
+    const h = engine.every((ms) => {
+      calls++;
+      if (ms >= 100) h.cancel();
+    });
+    for (let i = 0; i < 30; i++) c.step();
+    // 0, 16,7 … 100 ms: sieben Aufrufe, dann Schluss.
+    expect(calls).toBe(7);
+    expect(c.pending()).toBe(0);
+  });
+
+  it('ein ausgelassener Frame verfälscht die Zeit nicht', () => {
+    const frame = 1000 / 60;
+    const c = fakeClock(frame);
+    const engine = createTimingEngine(c.clock);
+    let last = -1;
+    engine.every((ms) => (last = ms));
+    c.step();
+    c.step(5);
+    expect(last).toBeCloseTo(5 * frame, 6);
+  });
+});
+
 describe('wait', () => {
   it('wartet die gerundete Frame-Zahl und lässt sich abbrechen', async () => {
     const c = fakeClock(1000 / 60);

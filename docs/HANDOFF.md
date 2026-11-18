@@ -2,12 +2,12 @@
 
 ## Stand
 
-Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR #3–#5) und live unter https://mason1-glitch.github.io/brainup/. Deploy am 16.11. geprüft: Live-Bundle = Stand von `main`, Service Worker aktiv, alle Spiele starten ohne Netz. Der Nutzer nutzt die App täglich als Home-Bildschirm-App auf seinem iPhone.
+Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind in `main` (PR #3–#6) und live unter https://mason1-glitch.github.io/brainup/. Runde 3 (Datensicherung, fünf Aufwärm-Spiele, Kopfrechen-Modi, Messung, Fortschritt, Einstellungen, Qualität) liegt fertig auf `fable-4` im Pull Request #7 und geht erst nach dem Merge live. Deploy am 16.11. geprüft: Live-Bundle = Stand von `main`, Service Worker aktiv, alle Spiele starten ohne Netz. Der Nutzer nutzt die App täglich als Home-Bildschirm-App auf seinem iPhone.
 
 **Wer arbeitet:** Fable, solange Kontingent da ist – an der ganzen Liste „Offen“, auch an den Spielen. Opus springt nur ein, wenn Fable nicht verfügbar ist, und macht beim ersten offenen Punkt weiter (CLAUDE.md, Übergaberegeln).
 
 - **Gerüst:** Vite 8, Svelte 5 (Runes), TypeScript 6 strict, Vitest, Dexie, Playwright.
-- **Kernmodule** (`src/core/`, alle getestet): `timing`, `staircase`, `fraction`, `srs`, `rng`.
+- **Kernmodule** (`src/core/`, alle getestet): `timing`, `timingReport`, `staircase`, `fraction`, `srs`, `rng`, `ics`.
 - **Daten** (`src/data/`): Datenmodell, Dexie-Schema Version 1, Repository als einziger Zugang, Sicherung als JSON-Datei (D15).
 - **Design** (`src/design/`, `src/ui/`): Tokens, Basiskomponenten, Styleguide unter `#/dev/styleguide`.
 - **App-Shell** (`src/app/`, `src/routes/`): Hash-Router, Tab-Leiste, Seiten Heute (Tagesprogramm) und Spiele; Fortschritt zeigt Wochenziel, Kalender, Verläufe und Bestwerte; Einstellungen: Design und Bewegung, Ton und Vibration, Tagesprogramm und Wochenziel, Rechenarten und Rechentricks, Erinnerung, Datensicherung; Spiel-Host `Play.svelte`.
@@ -23,14 +23,14 @@ Fundament, fünf Spiele, PWA/Deploy und Tagesprogramm sind fertig, in `main` (PR
   - `nback` – N-Back (Aufwärm-Spiel: Feld wie vor n Schritten? n und Tempo steigen blockweise)
   - `taskswitch` – Wechselspiel (Aufwärm-Spiel: gerade/ungerade oder kleiner/größer als 5; Antwortfenster adaptiv)
 - **Tagesprogramm** (D6, D14): auf „Heute“ starten, im Host Schritt für Schritt spielen, am selben Tag fortsetzen.
-- **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR und veröffentlicht `main` auf Pages.
+- **PWA und Deploy** (D13): Service Worker mit vollständigem Precache, Manifest, Icons; GitHub Actions prüft jeden Push/PR in drei Jobs (iPhone-Profil, Pixel-Profil, Lighthouse) und veröffentlicht `main` auf Pages, wenn alle drei grün sind.
 - **Spiele-Liste:** `docs/GAMES.md` – was jedes Spiel fordert, Quellen, verbindliche App-Texte, Auswahl der Aufwärm-Spiele (vom Nutzer bestätigt: „Passt so“).
 - **Vorlage:** `docs/ADDING_A_GAME.md`, Befehl `/neues-spiel <id>`. Für Aufgaben mit vier Antwortbildern sind `paperfold` und `sections` die Muster (`Board.svelte` mit 2×2-Auswahl, die sich der Höhe anpasst).
-- **Abnahme zuletzt:** `npm test`, `npm run build`, `npm run e2e` (iPhone-Profil 32 Läufe ≈ 8 min, Pixel-Profil 29 Läufe ≈ 4 min) grün.
+- **Abnahme zuletzt:** `npm test` (203 Tests), `npm run build`, `npm run e2e` (beide Profile, 137 Läufe ≈ 9 min, darin axe-core) und Lighthouse (alle Kategorien ≥ 0,99) grün.
 
 **Branches:** Alles bis PR #6 ist in `main`. Runde 3 läuft auf dem Branch `fable-4` (Pull Request nach `main` offen); dort weiterpushen, bis der Nutzer ihn mergt.
 
-**Nächster Schritt:** der erste offene Unterpunkt unter „Offen“ (Punkt 7, Lighthouse CI und axe-core; danach Punkt 8, Red Team).
+**Nächster Schritt:** Punkt 8 (Red Team) – Messtechnik und Texte sind durch; offen ist, was nur mit dem echten iPhone und echtem Spielen geht (steht dort). Danach Punkt 9 (Abschluss).
 
 **Ansehen:** `npm run dev` → http://localhost:5173/brainup/ · iPhone im selben WLAN: `npm run dev:phone`, „Network“-Adresse + `/brainup/`. Screenshots im iPhone-Profil macht man am zuverlässigsten mit Playwright-WebKit (siehe Fallstricke).
 
@@ -69,9 +69,14 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
    - [x] Einstellungen: Ton, Vibration, Bewegung reduzieren, Umfang des Tagesprogramms (Kurz/Normal/Lang – so ist „Sitzungslänge“ umgesetzt, D20), Wochenziel.
    - [x] Erinnerung als `.ics`-Datei (Uhrzeit und Wochentage wählbar; `src/core/ics.ts`). **Auf dem echten iPhone noch nicht bestätigt**, ob das Teilen-Menü die Datei an den Kalender gibt.
 7. **Qualität**
-   - [ ] Lighthouse CI (≥ 95 überall) und axe-core (0 schwere Verstöße) in GitHub Actions; Funde beheben, auch den schwachen Kontrast der Tippflächen im Blickfeld.
+   - [x] axe-core: `e2e/a11y.spec.ts` prüft in beiden Profilen, hell und dunkel, alle Seiten sowie Einstieg, Tutorial und laufenden Lauf jedes Spiels auf Verstöße der Stufen „serious“/„critical“ – keine Ausnahmen. Behoben: zu blasse Wochentag-Beschriftung auf „Fortschritt“. Die Tippflächen im Blickfeld wurden nicht beanstandet.
+   - [x] Lighthouse CI: `lighthouserc.json`, eigener CI-Job `lighthouse` (≥ 0,95 in allen vier Kategorien, sonst rot). Lokal: Performance 0,99, Accessibility 1,00, Best Practices 1,00, SEO 1,00 (nach ergänzter `meta description`).
 8. **Phase 5 – Red Team** (PLAN.md)
-   - [ ] Als Spieletester, Messtechniker und Skeptiker angreifen, alle Funde beheben.
+   - [ ] Als Spieletester, Messtechniker und Skeptiker angreifen, alle Funde beheben. Begonnen, nicht fertig:
+     - *Messtechniker, erledigt:* Die 60-Sekunden-Uhr des Sprints lief über ein eigenes `requestAnimationFrame` statt über die Timing-Engine – jetzt `timing.every()` (getestet). Die Zahlentastatur liefert den `pointerdown`-Zeitstempel (geprüft). Schwellenschätzung von Blickfeld, Pfeilfokus und Wechselspiel gegen simulierte Spieler mit bekannter Schwelle geprüft (`src/games/threshold.test.ts`): ab dem zweiten Lauf im Median auf ±5 % genau und in mindestens 85 % der Läufe auf ±20 %; nur der allererste Lauf überschätzt eine tiefe Schwelle (im Median bis +11 %), weil das Einschwingen noch nicht vorbei ist. Ausreißer bei Reaktionszeiten: unkritisch – angezeigt wird überall der Median, und die Schwelle kommt aus den Staircase-Werten, nicht aus Reaktionszeiten. Die ≈ 0,5 % zu kurze Ist-Dauer im Headless-WebKit ist kein Messfehler: Die Engine zählt die Frames richtig, der Bildschirm läuft nur etwas schneller als 60 Hz; `actualMs` in den Rohdaten zeigt die wahre Dauer.
+     - *Messtechniker, offen:* Bildtakt auf dem echten iPhone mit `#/dev/timing` ablesen.
+     - *Skeptiker, erledigt:* Alle App-Texte (Seiten, Tutorials, Laufmeldungen) gegen `docs/GAMES.md` gelesen – kein Wirkversprechen, die Aussagen zur Schwierigkeit decken sich. Die Beschreibung im PWA-Manifest nennt jetzt auch Aufwärmen und Fokus.
+     - *Spieletester, offen:* Alle fünf Aufwärm-Spiele, Papierfalten und Schnittansichten selbst spielen (nur der Bot hat sie gespielt): Zielzeit der Zahlensuche, Antwortfenster-Start von Pfeilfokus (1500 ms) und Wechselspiel (2500 ms), Blockregel beim N-Back, Tempo der Blockfolge. Bei Blockfolge, Papierfalten und Schnittansichten zeigt nach Fehlern allein die Farbe Grün, was richtig gewesen wäre – für Menschen mit Rot-Grün-Schwäche prüfen. Rückmeldung des Nutzers vom iPhone einarbeiten.
 9. **Abschluss**
    - [ ] HANDOFF.md und DECISIONS.md auf den Endstand, Pull Request, dem Nutzer sagen, was er auf dem iPhone ansehen soll.
 
@@ -151,6 +156,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Beobachtung für das Red Team:** Die Ist-Dauer liegt dort im Mittel etwa 0,5 % unter dem Soll (15 Frames: 248,6 statt 250,0 ms) – der Bildtakt des Headless-WebKit ist offenbar etwas schneller als die 60 Hz, auf die `calibrate()` einrastet (±4 %). Auf dem iPhone mit der Seite nachmessen; ist es dort genauso, die Einrast-Toleranz in `measureFrameMs` enger fassen oder den gemessenen Median direkt nehmen.
 - **Zwei Profile:** `npm run e2e` spielt `iphone` (WebKit) und `pixel` (Chromium); einzeln mit `npx playwright test --project=iphone`. Lokal einmalig `npx playwright install webkit chromium`. In der CI laufen sie als zwei parallele Jobs (`test`, `pixel`); veröffentlicht wird der Build aus `test`, aber erst wenn beide grün sind. Der Job `test` braucht inzwischen ≈ 14 von 20 Minuten – neue lange Läufe mit `{ tag: '@lang' }` kennzeichnen oder das Zeitlimit anheben.
 - **Chromium ist schneller als WebKit:** Nach „Fertig“ erst auf die Spieleliste warten, bevor der Test die nächste Adresse aufruft – sonst überholt der zweite Seitenwechsel den ersten und die App bleibt auf dem Ergebnisbildschirm. Nach dem Ändern einer Einstellung erst in IndexedDB nachsehen, dann neu laden (`e2e/arithmetic.spec.ts`).
+- **Uhren im Spiel:** `timing.every(tick)` liefert in jedem Frame die vergangene Zeit (Sprint-Uhr). Kein eigenes `requestAnimationFrame` in Spielen.
 - **Warum 198 statt 200 im Test:** Die Engine protokolliert ehrlich, wenn der Rechner einen Frame zu lange festhält. Unter CI-Last (mehrere Browser parallel) kann das vereinzelt passieren; mehr als zwei Ausreißer in 200 wären ein Fehler der Engine.
 
 ### Schritt 5 – Fortschritt
@@ -168,13 +174,21 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Schlüssel der Einstellungen:** `theme`, `motion`, `sound`, `haptics`, `daily`, `weeklyGoal`, `arithmetic.kinds`, `arithmetic.tricks`, `reminder`. Sie stehen in Sicherungen – nicht umbenennen.
 - **Erinnerung:** Die Kalenderdatei trägt eine feste `UID` je Installation (in der Einstellung `reminder`); eine neu erstellte Datei ersetzt damit den alten Termin. Die Uhrzeit ist „schwebend“ (ohne Zeitzone).
 
+### Schritt 7 – Qualität
+
+- **axe:** Vor jeder Prüfung wartet der Test, bis Einblende-Animationen fertig sind – sonst misst axe Mischfarben und meldet Kontrastfehler, die es nicht gibt. Neue Seiten und Spiele in `e2e/a11y.spec.ts` aufnehmen.
+- **Lighthouse** sieht nur die Startseite: Es verwirft den Teil der Adresse hinter `#`, die zweite URL in `lighthouserc.json` (`#/spiele`) ist also dieselbe Seite. Andere Seiten deckt axe ab.
+- **Lighthouse in der CI:** Die Performance-Zahl hängt vom Rechner ab. Wird der Job dort knapp rot, obwohl lokal 0,99 herauskommt: Messwerte aus dem Artefakt `.lighthouseci` ansehen, nicht die Schwelle senken.
+- **Bekannter Grenzfall:** `--ink-3` auf `--sunken` hat im hellen Schema nur 4,23 : 1. Keine der geprüften Stellen nutzt die Kombination für Text; wer kleinen Text auf `--sunken` setzt, nimmt `--ink-2`.
+- **CI-Dauer:** drei parallele Jobs (`test` = iPhone-Profil, `pixel`, `lighthouse`); `test` hat 30 Minuten Zeit.
+
 ## Noch nicht geprüft
 
 - Erinnerung auf dem echten iPhone: ob „Kalenderdatei erstellen“ über das Teilen-Menü im Kalender landet (sonst: Datei in „Dateien“ sichern und dort antippen). Töne: ob sie nach dem ersten Start eines Laufs zu hören sind (Stummschalter aus).
 - Sicherung auf dem echten iPhone: ob das Teilen-Menü die `.json`-Datei annimmt („In Dateien sichern“) und ob „Sicherung einlesen“ sie in der Dateien-App auswählen lässt. Meldet der Nutzer ein Problem: `accept` am Datei-Feld lockern bzw. den Dateityp der Sicherung auf `text/plain` stellen und erneut testen lassen.
 
 - Auf dem echten iPhone wurde nichts systematisch geprüft; der Nutzer spielt dort täglich, alle Testläufe liefen in Playwright-WebKit mit iPhone-15-Profil.
-- Barrierefreiheit wurde nicht mit axe geprüft. Die Tippflächen im Blickfeld (Antwortphase) haben einen schwachen Rand (`--line`) und erfüllen vermutlich nicht 3 : 1 Kontrast.
+- Barrierefreiheit ist nur automatisch geprüft (axe); mit VoiceOver auf dem iPhone hat niemand die Spiele bedient.
 - Papierfalten, Schnittansichten und alle fünf Aufwärm-Spiele hat nur der Bot gespielt (Zielzeiten, Antwortfenster und Blockregeln sind geschätzt, nicht am Menschen geeicht): Ob die Level gleichmäßig schwerer werden, zeigt erst das Spielen (Red Team).
 - Im Tutorial von Papierfalten und Schnittansichten sind die vier Antwortfelder auf kleinen Bildschirmen klein (der Erklärtext braucht Platz).
 

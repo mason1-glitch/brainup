@@ -166,22 +166,21 @@
     }
     untrack(resume);
     if (totalMs === null) return () => pending?.cancel();
-    let last: number | null = null;
-    let frame = requestAnimationFrame(function tick(t) {
-      if (last !== null) elapsed += t - last;
-      last = t;
+    // Die Uhr läuft über die Timing-Engine; `elapsed` behält über Pausen hinweg, was schon verbraucht ist.
+    const before = elapsed;
+    const clock = timing.every((ms) => {
+      elapsed = before + ms;
       const left = Math.max(0, totalMs - elapsed);
       // Punkte laufen sichtbar mit – im Sprint zählt jede Aufgabe.
       onProgress(elapsed / totalMs, `${score} P · ${Math.ceil(left / 1000)} s`);
       if (left <= 0) {
+        clock.cancel();
         pending?.cancel();
         onFinish(current);
-        return;
       }
-      frame = requestAnimationFrame(tick);
     });
     return () => {
-      cancelAnimationFrame(frame);
+      clock.cancel();
       pending?.cancel();
     };
   });

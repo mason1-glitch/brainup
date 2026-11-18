@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: {
         name: 'BrainUp',
         short_name: 'BrainUp',
-        description: 'Kurze Trainingseinheiten: räumliches Denken, Verarbeitungsgeschwindigkeit, Kopfrechnen.',
+        description: 'Kurze Trainingseinheiten: räumliches Denken, Verarbeitungsgeschwindigkeit, Kopfrechnen, Aufwärmen und Fokus.',
         lang: 'de',
         start_url: base,
         scope: base,

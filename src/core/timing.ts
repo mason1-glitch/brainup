@@ -70,6 +70,11 @@ export interface TimingEngine {
   onset: (show: () => void) => Handle<number>;
   /** Frame-genaue Wartezeit (Rückmeldung, Pausen zwischen Durchgängen) – abbrechbar, anders als setTimeout. */
   wait: (ms: number) => Handle<void>;
+  /**
+   * Läuft in jedem Frame mit der seit dem ersten Frame vergangenen Zeit – für Uhren und Countdowns,
+   * die dieselbe Zeitbasis wie die Reize haben sollen. Endet erst mit `cancel()`.
+   */
+  every: (tick: (elapsedMs: number) => void) => { cancel: () => void };
   /** Reaktionszeit eines Pointer-Ereignisses relativ zum Reizbeginn. */
   rt: (event: { timeStamp: number }, onset: number) => number;
   /** Soll/Ist aller Darbietungen (neueste zuletzt, max. 500) fürs Timing-Log. */
@@ -145,6 +150,25 @@ export function createTimingEngine(clock: Clock = browserClock): TimingEngine {
         id = clock.raf(tick);
       });
       return { done, cancel: () => clock.cancel(id) };
+    },
+
+    every(tick) {
+      let id = 0;
+      let start: number | null = null;
+      let stopped = false;
+      const frame = (t: number) => {
+        start ??= t;
+        tick(t - start);
+        // `tick` darf selbst abbrechen (Zeit abgelaufen) – dann kein weiterer Frame.
+        if (!stopped) id = clock.raf(frame);
+      };
+      id = clock.raf(frame);
+      return {
+        cancel() {
+          stopped = true;
+          clock.cancel(id);
+        },
+      };
     },
 
     rt: (event, onset) => event.timeStamp - onset,
