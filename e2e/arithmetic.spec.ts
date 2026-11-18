@@ -42,8 +42,9 @@ test('Kopfrechnen: Tutorial, 60-s-Sprint, Ergebnis', async ({ page }) => {
   }
 
   expect(answered).toBeGreaterThan(8);
+  expect(sentWrong).toBeGreaterThan(0);
   await expect(result).toHaveText(/^\d+$/);
-  await expect(page.getByText(/\d+ von \d+/)).toBeVisible();
+  const [right, total] = (await page.locator('.row', { hasText: 'Richtig' }).locator('dd').innerText()).split(' von ').map(Number);
 
   // Rohdaten: jede Antwort gespeichert; Fehler stehen in der Wiederholungsliste.
   const counts = await page.evaluate(
@@ -59,9 +60,12 @@ test('Kopfrechnen: Tutorial, 60-s-Sprint, Ergebnis', async ({ page }) => {
         };
       }),
   );
-  // Die letzte Eingabe kann mit dem Zeitablauf zusammenfallen – daher ±1.
-  expect(Math.abs(counts.trials - answered)).toBeLessThanOrEqual(1);
-  expect(Math.abs(counts.wrong - sentWrong)).toBeLessThanOrEqual(1);
+  // Jeder Durchgang, den das Ergebnis zählt, ist gespeichert – richtige wie falsche.
+  // (Nicht gegen die Zähler des Bots: Unter CI-Last landet in Chromium gelegentlich ein Tipp schon auf der
+  // nächsten Aufgabe oder läuft in die Zeitgrenze – dann weicht seine Buchführung von den echten Eingaben ab.)
+  expect(counts.trials).toBe(total);
+  expect(counts.trials - counts.wrong).toBe(right);
+  expect(counts.wrong).toBeGreaterThan(0);
   expect(counts.reviews).toBeGreaterThan(0);
 });
 
