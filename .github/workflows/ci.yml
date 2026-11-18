@@ -16,7 +16,8 @@ jobs:
   test:
     name: Tests, Build, E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Das iPhone-Profil braucht inzwischen gut eine Viertelstunde.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -64,10 +65,32 @@ jobs:
           path: test-results
           retention-days: 7
 
+  # Lighthouse gegen den Produktions-Build; alle vier Kategorien müssen mindestens 0,95 erreichen.
+  lighthouse:
+    name: Lighthouse
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx --yes @lhci/cli@0.15 autorun
+      - name: Lighthouse-Berichte bei Fehlern
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse
+          path: .lighthouseci
+          retention-days: 7
+
   deploy:
     name: Deploy auf GitHub Pages
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [test, pixel]
+    needs: [test, pixel, lighthouse]
     runs-on: ubuntu-latest
     permissions:
       pages: write

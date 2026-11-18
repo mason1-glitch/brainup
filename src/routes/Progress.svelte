@@ -252,7 +252,7 @@
     justify-items: center;
     gap: var(--s-1);
   }
-  .dots li.future {
+  .dots li.future .dot {
     opacity: 0.45;
   }
   .dot {
