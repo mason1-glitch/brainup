@@ -6,8 +6,10 @@ import { BrainUpDB } from '../../data/db';
 import { createRepo } from '../../data/repo';
 import type { Trial } from '../../data/types';
 import { answerInput, check, generate, KINDS } from './generators';
-import { applyAnswer, fromRecord, initialState, levelOf, levelOfKind, outcomeOf, pickKind, slowMs, summarize, toRecord } from './logic';
+import { arithmetic } from './index';
+import { activeKinds, applyAnswer, applyPlacement, fromRecord, initialState, levelOf, levelOfKind, outcomeIn, outcomeOf, pickKind, placedLevel, placementProbe, slowMs, summarize, toRecord } from './logic';
 import { dueTasks, recordReview } from './reviews';
+import { trickFor } from './tricks';
 
 describe('Adaptivität je Rechentyp', () => {
   const task = generate(seededRng(1), 'mul', 1);
@@ -67,6 +69,22 @@ describe('Speicherform und Wiederholungen', () => {
       }
   });
 
+  it('die Rechenvorschrift übersteht das Speichern: Der Rechentrick ist danach derselbe; alte Einträge ohne sie bleiben spielbar', () => {
+    const rng = seededRng(31);
+    let withTrick = 0;
+    for (const kind of KINDS)
+      for (let level = 1; level <= 10; level++)
+        for (let i = 0; i < 20; i++) {
+          const task = generate(rng, kind, level);
+          const record = JSON.parse(JSON.stringify(toRecord(task)));
+          expect(trickFor(fromRecord(record)), task.key).toEqual(trickFor(task));
+          if (trickFor(task)) withTrick++;
+          const { expr: _expr, ...old } = record;
+          expect(check(fromRecord(old), answerInput(task)), task.key).toBe(true);
+        }
+    expect(withTrick).toBeGreaterThan(1200);
+  });
+
   it('falsch → bald wieder fällig; gut beantwortet → später; gelernt → entfernt', async () => {
     const repo = createRepo(new BrainUpDB('arith-reviews'));
     const [a, b] = [generate(seededRng(1), 'table', 6), generate(seededRng(2), 'percent', 3)];
@@ -85,6 +103,110 @@ describe('Speicherform und Wiederholungen', () => {
       now += 30 * DAY;
     }
     expect((await dueTasks(repo, now)).map((t) => t.key)).toEqual([b.key]);
+  });
+});
+
+describe('Auswahl der Rechenarten', () => {
+  it('gespeicherte Auswahl in fester Reihenfolge; Unbekanntes fällt weg; leer oder kaputt heißt alle', () => {
+    expect(activeKinds(['percent', 'table'])).toEqual(['table', 'percent']);
+    expect(activeKinds(['table', 'table', 'gibtsnicht', 7])).toEqual(['table']);
+    for (const broken of [undefined, null, [], ['gibtsnicht'], 'table', { table: true }]) expect(activeKinds(broken)).toEqual([...KINDS]);
+  });
+
+  it('der gemischte Lauf bleibt in der Auswahl – auch mit nur einer Rechenart', () => {
+    const rng = seededRng(12);
+    let previous: (typeof KINDS)[number] | undefined;
+    const seen = new Set<string>();
+    for (let i = 0; i < 300; i++) {
+      const kind = pickKind(rng, previous, activeKinds(['div', 'power', 'estimate']));
+      expect(kind).not.toBe(previous);
+      seen.add(kind);
+      previous = kind;
+    }
+    expect([...seen].sort()).toEqual(['div', 'estimate', 'power']);
+    expect(pickKind(rng, 'add', activeKinds(['add']))).toBe('add');
+  });
+});
+
+describe('Einstufung', () => {
+  it('zwei Aufgaben je Rechenart: erst Level 4, dann 7 oder 2; das Startlevel folgt den Antworten', () => {
+    expect(placementProbe(null)).toBe(4);
+    expect(placementProbe(true)).toBe(7);
+    expect(placementProbe(false)).toBe(2);
+    // [erste gut, zweite gut] → Level. Nie höher als die schwerste gelöste Aufgabe, nie tiefer als Level 1.
+    const table: [boolean, boolean, number][] = [[true, true, 7], [true, false, 5], [false, true, 3], [false, false, 1]];
+    for (const [first, second, level] of table) {
+      expect(placedLevel(first, second)).toBe(level);
+      const solved = Math.max(first ? 4 : 0, second ? placementProbe(first) : 0);
+      expect(level).toBeLessThanOrEqual(Math.max(1, solved + 1));
+    }
+    expect(table.map(([, , level]) => level)).toEqual([7, 5, 3, 1]);
+  });
+
+  it('setzt nur die eine Rechenart, mit frischem Staircase; ein Spieler, der alles kann, landet überall auf 7', () => {
+    const before = applyAnswer(initialState(), generate(seededRng(1), 'add', 1), 'good');
+    const after = applyPlacement(before, 'mul', 5);
+    expect(levelOfKind(after, 'mul')).toBe(5);
+    expect(after.stairs.mul).toEqual({ value: 5, streak: 0, lastMove: 0, reversals: 0, trials: 0 });
+    expect(after.stairs.add).toEqual(before.stairs.add);
+    let state = initialState();
+    for (const kind of KINDS) state = applyPlacement(state, kind, placedLevel(true, true));
+    expect(levelOf(state)).toBe(7);
+    expect(arithmetic.placement).toEqual({ id: 'placement', title: 'Einstufung', budget: { trials: 2 * KINDS.length } });
+    // In der Einstufung zählt das Tempo wie im Sprint.
+    const task = generate(seededRng(3), 'mul', 4);
+    expect(outcomeIn('placement', task, true, slowMs('mul', 4) + 1)).toBe('slow');
+  });
+});
+
+describe('Modi', () => {
+  it('die Modus-IDs stehen in gespeicherten Sitzungen und bleiben, wie sie sind', () => {
+    expect(arithmetic.modes.map((m) => m.id)).toEqual(['sprint', 'precision', 'review']);
+    expect(arithmetic.modes.map((m) => m.budget)).toEqual([{ seconds: 60 }, { trials: 15 }, { trials: 10 }]);
+  });
+
+  it('Präzision kennt kein „langsam“; Sprint und Fehlertraining werten das Tempo', () => {
+    const task = generate(seededRng(3), 'mul', 4);
+    const slow = slowMs('mul', 4) + 1;
+    expect(outcomeIn('precision', task, true, slow)).toBe('good');
+    expect(outcomeIn('precision', task, true, null)).toBe('good');
+    expect(outcomeIn('precision', task, false, 100)).toBe('wrong');
+    for (const mode of ['sprint', 'review'] as const) {
+      expect(outcomeIn(mode, task, true, slow)).toBe('slow');
+      expect(outcomeIn(mode, task, true, slow - 2)).toBe('good');
+      expect(outcomeIn(mode, task, false, 100)).toBe('wrong');
+    }
+  });
+
+  it('Fehlertraining: nur fällige Aufgaben dieses Spiels, die am längsten fälligen zuerst, höchstens so viele wie die Sitzung fasst', async () => {
+    const db = new BrainUpDB('arith-due');
+    const repo = createRepo(db);
+    const rng = seededRng(21);
+    const tasks = KINDS.map((kind) => generate(rng, kind, 3));
+    // Fälligkeit bewusst nicht in der Reihenfolge des Anlegens: Aufgabe i ist bei (7·i mod 10) + 1 Stunden fällig.
+    const HOUR = 60 * MINUTE;
+    const dueAt = (i: number) => (((7 * i) % 10) + 1) * HOUR;
+    for (const [i, task] of tasks.entries()) {
+      await repo.putReview({ key: task.key, gameId: 'arithmetic', kind: task.kind, task: toRecord(task), due: dueAt(i), intervalDays: 0, streak: 0, lapses: 1 });
+    }
+    await repo.putReview({ key: 'fremd', gameId: 'other', kind: 'x', task: null, due: 1, intervalDays: 0, streak: 0, lapses: 1 });
+
+    const byDue = tasks.map((t, i) => ({ key: t.key, due: dueAt(i) })).sort((a, b) => a.due - b.due).map((x) => x.key);
+    expect((await dueTasks(repo, 0)).map((t) => t.key)).toEqual([]);
+    expect((await dueTasks(repo, 4 * HOUR)).map((t) => t.key)).toEqual(byDue.slice(0, 4));
+    expect((await dueTasks(repo, 4 * HOUR - 1)).map((t) => t.key)).toEqual(byDue.slice(0, 3));
+    expect((await dueTasks(repo, DAY)).map((t) => t.key)).toEqual(byDue);
+    expect((await dueTasks(repo, DAY, 3)).map((t) => t.key)).toEqual(byDue.slice(0, 3));
+    // Jede geladene Aufgabe ist spielbar: Die gespeicherte Lösung wird als richtig erkannt.
+    for (const task of await dueTasks(repo, DAY)) expect(check(task, answerInput(task)), task.key).toBe(true);
+
+    // Nach der Antwort ist die Aufgabe in dieser Sitzung nicht mehr fällig – auch nicht nach einem Fehler.
+    const [first, second] = await dueTasks(repo, DAY, 2);
+    await recordReview(repo, first!, 'wrong', DAY);
+    await recordReview(repo, second!, 'good', DAY);
+    const left = (await dueTasks(repo, DAY + MINUTE)).map((t) => t.key);
+    expect(left).toEqual(byDue.slice(2));
+    expect((await dueTasks(repo, DAY + 10 * MINUTE)).map((t) => t.key)).toContain(first!.key);
   });
 });
 

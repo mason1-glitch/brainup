@@ -53,7 +53,7 @@ test('Blickfeld (UFOV): Tutorial, kompletter Lauf, Ergebnis, Timing', async ({ p
   expect(trials.at(-1)!.difficulty).toBeLessThan(trials[0]!.difficulty);
 });
 
-test('Blickfeld (UFOV): drei fehlerfreie Läufe schalten Stufe 2 und 3 frei; Stufe 3 zeigt Ablenker', async ({ page }) => {
+test('Blickfeld (UFOV): drei fehlerfreie Läufe schalten Stufe 2 und 3 frei; Stufe 3 zeigt Ablenker', { tag: '@lang' }, async ({ page }) => {
   test.setTimeout(240_000);
   await openGame(page, 'ufov');
   await page.getByRole('button', { name: 'Kurz üben' }).click();

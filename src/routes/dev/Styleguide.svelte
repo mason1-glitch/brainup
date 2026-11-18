@@ -10,8 +10,13 @@
   import Numpad from '../../ui/Numpad.svelte';
   import ProgressBar from '../../ui/ProgressBar.svelte';
   import ProgressRing from '../../ui/ProgressRing.svelte';
+  import Sparkline from '../../ui/Sparkline.svelte';
   import ResultScreen from '../../ui/ResultScreen.svelte';
   import Segmented from '../../ui/Segmented.svelte';
+  import Stepper from '../../ui/Stepper.svelte';
+  import Switch from '../../ui/Switch.svelte';
+  import TimeInput from '../../ui/TimeInput.svelte';
+  import WeekdayPicker from '../../ui/WeekdayPicker.svelte';
 
   const colors = ['bg', 'surface', 'sunken', 'line', 'ink', 'ink-2', 'ink-3', 'accent', 'accent-soft', 'good', 'good-soft', 'bad', 'bad-soft', 'solid-lit', 'solid-shade'];
   const sizes = ['3xl', '2xl', 'xl', 'lg', 'md', 'sm', 'xs'];
@@ -25,6 +30,9 @@
   let demo = $state<'none' | 'frame' | 'result'>('none');
   let paused = $state(true);
   let moved = $state(false);
+  let goal = $state(4);
+  let time = $state('18:00');
+  let weekdays = $state([0, 2, 4]);
 
   const summary: Summary = {
     score: 23,
@@ -159,6 +167,24 @@
     </section>
 
     <section>
+      <h2 class="label">Schalter</h2>
+      <Card>
+        <Switch label="Eingeschaltet" checked={true} />
+        <Switch label="Ausgeschaltet" checked={false} />
+        <Switch label="Gesperrt" checked={true} disabled />
+      </Card>
+    </section>
+
+    <section>
+      <h2 class="label">Zahl, Uhrzeit, Wochentage</h2>
+      <Card>
+        <Stepper label="Wochenziel (Tage)" bind:value={goal} min={1} max={7} />
+        <TimeInput label="Uhrzeit" bind:value={time} />
+        <WeekdayPicker label="Wochentage" bind:value={weekdays} />
+      </Card>
+    </section>
+
+    <section>
       <h2 class="label">Fortschritt</h2>
       <Card>
         <div class="progress">
@@ -172,6 +198,17 @@
             <ProgressBar value={progress} />
             <Button variant="secondary" onclick={() => (progress = progress >= 1 ? 0 : Math.min(1, progress + 0.2))}>Weiter</Button>
           </div>
+        </div>
+      </Card>
+    </section>
+
+    <section>
+      <h2 class="label">Verlaufslinie</h2>
+      <Card>
+        <div class="stack">
+          <Sparkline values={[1, 1.4, 2, 2.2, 3, 3.6, 4]} label="Steigend" />
+          <Sparkline values={[3, 2, 4.5, 2.5, 3.5, 2, 4]} label="Schwankend" />
+          <Sparkline values={[3]} label="Ein Wert" />
         </div>
       </Card>
     </section>

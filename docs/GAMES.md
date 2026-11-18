@@ -22,11 +22,11 @@ Zu den Quellen: Jede Angabe wurde nachgeschlagen (Crossref-Metadaten zur DOI; be
 | Papierfalten | `paperfold` | Training | räumliches Vorstellen: Falten und Entfalten | vorhanden |
 | Schnittansichten | `sections` | Training | räumliches Vorstellen: Körper und Schnittflächen | vorhanden |
 | Kopfrechnen | `arithmetic` | Kopfrechnen | Rechenfertigkeit und Tempo | vorhanden |
-| Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | geplant |
-| Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | geplant |
-| Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | geplant |
-| N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | geplant |
-| Wechselspiel | `taskswitch` | Aufwärmen & Fokus | zwischen zwei Regeln umschalten | geplant (optional) |
+| Zahlensuche | `schulte` | Aufwärmen & Fokus | visuelle Suche, Blickführung | vorhanden |
+| Blockfolge | `corsi` | Aufwärmen & Fokus | räumliches Kurzzeitgedächtnis | vorhanden |
+| Pfeilfokus | `flanker` | Aufwärmen & Fokus | Ablenkung ausblenden | vorhanden |
+| N-Back | `nback` | Aufwärmen & Fokus | Arbeitsgedächtnis fortlaufend aktualisieren | vorhanden |
+| Wechselspiel | `taskswitch` | Aufwärmen & Fokus | zwischen zwei Regeln umschalten | vorhanden |
 
 Die IDs stehen später in gespeicherten Daten – nach dem ersten Release nicht mehr ändern.
 
@@ -68,7 +68,7 @@ Die IDs stehen später in gespeicherten Daten – nach dem ersten Release nicht 
 
 ### Kopfrechnen · `arithmetic`
 
-- **Fordert:** Rechenfertigkeit unter Zeitdruck in zehn Rechenarten (Einmaleins bis 20 × 20, mehrstellig ±, ×, ÷, Prozent, Quadrate/Wurzeln, Brüche ↔ Dezimal, Zehnerpotenzen, Überschlag). Adaptiv je Rechenart.
+- **Fordert:** Rechenfertigkeit unter Zeitdruck in zehn Rechenarten (Einmaleins bis 20 × 20, mehrstellig ±, ×, ÷, Prozent, Quadrate/Wurzeln, Brüche ↔ Dezimal, Zehnerpotenzen, Überschlag). Adaptiv je Rechenart. Drei Modi: Sprint (60 Sekunden, Tempo zählt), Präzision (15 Aufgaben ohne Uhr) und Fehlertraining (falsche und langsame Aufgaben kommen in wachsenden Abständen wieder). Nach einem Fehler zeigt die App in den Modi ohne Uhr einen Rechenweg für die Aufgabe. Beim ersten Mal setzt eine kurze Einstufung (zwei Aufgaben je Rechenart) die Startlevel.
 - **Quelle:** keine nötig – geübt wird die Fertigkeit selbst.
 - **Titel:** Kopfrechnen
 - **Kurzzeile:** Zehn Rechenarten, die mit dir wachsen
@@ -90,41 +90,41 @@ Kriterien aus PLAN.md: in 1–3 Minuten spielbar, adaptiv steigerbar, per Touch 
 
 **Verworfen:** *Stroop* (Farbwörter) – braucht vier Farbtasten und sicheres Farbensehen und fordert Ähnliches wie der Pfeilfokus; *Go/No-Go* – zu eintönig, kaum sinnvoll steigerbar; *Zahlen verbinden (Trail Making)* – deckt sich mit der Zahlensuche; *einfache Reaktionszeit* – nicht adaptiv, nach zwei Runden reizlos.
 
-### Zahlensuche · `schulte` (geplant)
+### Zahlensuche · `schulte`
 
-- **Fordert:** In einer Tafel mit durcheinandergewürfelten Zahlen der Reihe nach 1, 2, 3 … antippen – schnelle visuelle Suche und Blickführung.
+- **Fordert:** In einer Tafel mit durcheinandergewürfelten Zahlen der Reihe nach 1, 2, 3 … antippen – schnelle visuelle Suche und Blickführung. Adaptiv über die Tafelgröße (3×3 bis 6×6), danach über die Reihenfolge (rückwärts, im Wechsel kleinste/größte); Maßstab ist eine Zielzeit von einer Sekunde je Zahl.
 - **Quelle:** bekannt als Schulte-Tabelle; keine geprüfte Primärquelle – deshalb ohne Literaturangabe.
 - **Titel:** Zahlensuche
 - **Kurzzeile:** Aufwärm-Spiel: Zahlen der Reihe nach finden
 - **Beschreibung:** Aufwärm-Spiel. Tippe die Zahlen der Reihe nach an – 1, 2, 3 … – so schnell du kannst. Die Tafel wächst mit dir.
 
-### Blockfolge · `corsi` (geplant)
+### Blockfolge · `corsi`
 
-- **Fordert:** Felder leuchten nacheinander auf; die Folge in derselben Reihenfolge nachtippen – räumliches Kurzzeitgedächtnis.
+- **Fordert:** Felder leuchten nacheinander auf; die Folge in derselben Reihenfolge nachtippen – räumliches Kurzzeitgedächtnis. Adaptiv über die Länge der Folge (nach jedem Erfolg länger, nach einem Fehler kürzer); ab Länge 7 kommen ein schnelleres Tempo und danach die umgekehrte Reihenfolge dazu.
 - **Quelle:** Corsi-Block-Aufgabe, beschrieben und normiert in [KE].
 - **Titel:** Blockfolge
 - **Kurzzeile:** Aufwärm-Spiel: Folge merken und nachtippen
 - **Beschreibung:** Aufwärm-Spiel. Felder leuchten nacheinander auf. Tippe sie danach in derselben Reihenfolge an. Nach jedem Erfolg wird die Folge länger.
 
-### Pfeilfokus · `flanker` (geplant)
+### Pfeilfokus · `flanker`
 
-- **Fordert:** Die Richtung des mittleren Pfeils angeben, während die Pfeile daneben teils in die Gegenrichtung zeigen – Ablenkung ausblenden unter Zeitdruck.
+- **Fordert:** Die Richtung des mittleren Pfeils angeben, während die Pfeile daneben teils in die Gegenrichtung zeigen – Ablenkung ausblenden unter Zeitdruck. Adaptiv über das Antwortfenster (kürzer nach drei richtigen in Folge) und den Anteil widersprüchlicher Reihen (40 bis 60 %).
 - **Quelle:** Flanker-Aufgabe nach [EE] (dort mit Buchstaben; die Pfeil-Variante ist eine spätere, verbreitete Abwandlung).
 - **Titel:** Pfeilfokus
 - **Kurzzeile:** Aufwärm-Spiel: nur der mittlere Pfeil zählt
 - **Beschreibung:** Aufwärm-Spiel. Wohin zeigt der mittlere Pfeil? Tippe links oder rechts – und lass dich von den Pfeilen daneben nicht ablenken.
 
-### N-Back · `nback` (geplant)
+### N-Back · `nback`
 
-- **Fordert:** Eine Folge von Positionen verfolgen und melden, wenn die aktuelle der von vor n Schritten gleicht – Arbeitsgedächtnis fortlaufend aktualisieren.
+- **Fordert:** Eine Folge von Positionen verfolgen und melden, wenn die aktuelle der von vor n Schritten gleicht – Arbeitsgedächtnis fortlaufend aktualisieren. Adaptiv in Blöcken von 20 gewerteten Feldern: Nach einem sicheren Block (höchstens ein Fehler) wird es schwerer – n steigt von 1 bis 3, dazwischen wird das Tempo schneller; nach vielen Fehlern geht es eine Stufe zurück.
 - **Quelle:** Aufgabe nach [KI]. Ob N-Back-Training über die Aufgabe hinaus wirkt, ist umstritten – die App verspricht dazu nichts.
 - **Titel:** N-Back
 - **Kurzzeile:** Aufwärm-Spiel: war das Feld vor n Schritten dasselbe?
 - **Beschreibung:** Aufwärm-Spiel. Ein Feld nach dem anderen leuchtet auf. Tippe auf „Treffer“, wenn das Feld dasselbe ist wie vor n Schritten. Triffst du sicher, steigt n.
 
-### Wechselspiel · `taskswitch` (geplant, optional)
+### Wechselspiel · `taskswitch`
 
-- **Fordert:** Je nach Hinweis eine von zwei Regeln auf dieselbe Zahl anwenden (gerade/ungerade oder kleiner/größer als 5) – zügig zwischen Regeln umschalten.
+- **Fordert:** Je nach Hinweis eine von zwei Regeln auf dieselbe Zahl anwenden (gerade/ungerade oder kleiner/größer als 5) – zügig zwischen Regeln umschalten. Adaptiv über das Antwortfenster (kürzer nach drei richtigen in Folge) und die Häufigkeit der Regelwechsel (25 bis 50 %).
 - **Quelle:** Aufgabenwechsel-Paradigma nach [RM].
 - **Titel:** Wechselspiel
 - **Kurzzeile:** Aufwärm-Spiel: zwei Regeln, schnell umschalten

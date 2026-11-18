@@ -17,8 +17,11 @@ export async function recordReview(repo: ReviewRepo, task: Task, outcome: Outcom
   else if (prev) await repo.deleteReview(task.key);
 }
 
-/** Fällige Aufgaben, älteste zuerst. */
-export async function dueTasks(repo: ReviewRepo, now = Date.now()): Promise<Task[]> {
+/** Fällige Aufgaben, die am längsten fälligen zuerst; `limit` begrenzt eine Sitzung des Fehlertrainings. */
+export async function dueTasks(repo: ReviewRepo, now = Date.now(), limit = Infinity): Promise<Task[]> {
   const due = await repo.dueReviews(GAME_ID, now);
-  return due.sort((a, b) => a.due - b.due).map((r) => fromRecord(r.task as TaskRecord));
+  return due
+    .sort((a, b) => a.due - b.due)
+    .slice(0, limit)
+    .map((r) => fromRecord(r.task as TaskRecord));
 }

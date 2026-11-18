@@ -3,6 +3,7 @@
   import { updateStaircase } from '../../core/staircase';
   import { timing } from '../../core/timing';
   import type { RunProps } from '../types';
+  import { signal } from '../../ui/feedback';
   import { advance, kindOf, makeTrial, STAIRCASE, type UfovState, type UfovTrial } from './logic';
   import Round, { type RoundResult } from './Round.svelte';
 
@@ -37,6 +38,7 @@
       difficulty: trial.durationMs,
     });
     current = { ...current, stair: updateStaircase(STAIRCASE, current.stair, r.correct) };
+    signal(r.correct);
     done++;
     next();
   }

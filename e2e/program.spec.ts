@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { playArithmetic, playRotation, playUfov } from './helpers';
+import { playArithmetic, playRotation, playSchulte, playUfov } from './helpers';
 
 test('Tagesprogramm: starten, unterbrechen, am selben Tag fortsetzen, bis zum Ende spielen', async ({ page }) => {
   test.setTimeout(300_000);
@@ -12,30 +12,36 @@ test('Tagesprogramm: starten, unterbrechen, am selben Tag fortsetzen, bis zum En
   await page.goto('./');
   await expect(page.getByText('Montag, 15. Juni')).toBeVisible();
 
-  // Plan: zwei Trainingsspiele, dann Kopfrechnen.
-  await expect(page.locator('.row strong')).toHaveText(['Mentale Rotation', 'Blickfeld', 'Kopfrechnen']);
+  // Plan: ein Aufwärm-Spiel, zwei Trainingsspiele, dann Kopfrechnen.
+  await expect(page.getByText('4 Spiele nacheinander: Aufwärmen, Training, Kopfrechnen.')).toBeVisible();
+  await expect(page.locator('.row strong')).toHaveText(['Zahlensuche', 'Mentale Rotation', 'Blickfeld', 'Kopfrechnen']);
   await page.getByRole('button', { name: 'Programm starten' }).click();
 
-  // Schritt 1 im normalen Spiel-Host.
-  await expect(page.getByText('Tagesprogramm · Schritt 1 von 3')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Mentale Rotation' })).toBeVisible();
-  await playRotation(page);
+  // Schritt 1 im normalen Spiel-Host: Aufwärmen.
+  await expect(page.getByText('Tagesprogramm · Schritt 1 von 4')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Zahlensuche' })).toBeVisible();
+  await playSchulte(page);
   await expect(page.getByRole('button', { name: 'Nochmal' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Weiter' }).click();
-  await expect(page.getByText('Tagesprogramm · Schritt 2 von 3')).toBeVisible();
+
+  await expect(page.getByText('Tagesprogramm · Schritt 2 von 4')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mentale Rotation' })).toBeVisible();
+  await playRotation(page);
+  await page.getByRole('button', { name: 'Weiter' }).click();
+  await expect(page.getByText('Tagesprogramm · Schritt 3 von 4')).toBeVisible();
 
   // Unterbrechen: App neu laden. „Heute“ kennt den Durchlauf noch und setzt ihn fort.
   await page.goto('#/');
   await page.reload();
   await expect(page.getByText('Montag, 15. Juni')).toBeVisible();
-  await expect(page.locator('.row')).toHaveCount(3);
-  await expect(page.locator('.row.done')).toHaveCount(1);
+  await expect(page.locator('.row')).toHaveCount(4);
+  await expect(page.locator('.row.done')).toHaveCount(2);
   await page.getByRole('button', { name: 'Fortsetzen' }).click();
   await expect(page.getByRole('heading', { name: 'Blickfeld' })).toBeVisible();
   await playUfov(page);
   await page.getByRole('button', { name: 'Weiter' }).click();
 
-  await expect(page.getByText('Tagesprogramm · Schritt 3 von 3')).toBeVisible();
+  await expect(page.getByText('Tagesprogramm · Schritt 4 von 4')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Kopfrechnen' })).toBeVisible();
   await playArithmetic(page);
   await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
@@ -43,9 +49,9 @@ test('Tagesprogramm: starten, unterbrechen, am selben Tag fortsetzen, bis zum En
 
   // Zurück auf „Heute“: alles abgehakt.
   await expect(page.getByText('Für heute geschafft.')).toBeVisible();
-  await expect(page.locator('.row.done')).toHaveCount(3);
+  await expect(page.locator('.row.done')).toHaveCount(4);
 
-  // Gespeichert: ein beendeter Durchlauf, dessen Schritte auf drei beendete Sitzungen zeigen.
+  // Gespeichert: ein beendeter Durchlauf, dessen Schritte auf vier beendete Sitzungen zeigen.
   const stored = await page.evaluate(
     () =>
       new Promise<{ runs: { id: string; finishedAt: number | null; steps: { sessionId: string | null }[] }[]; sessions: { id: string; completed: boolean; programRunId: string | null }[] }>((resolve) => {
@@ -62,11 +68,13 @@ test('Tagesprogramm: starten, unterbrechen, am selben Tag fortsetzen, bis zum En
   const run = stored.runs[0]!;
   expect(run.finishedAt).not.toBeNull();
   const played = stored.sessions.filter((s) => s.programRunId === run.id && s.completed).map((s) => s.id);
-  expect(played).toHaveLength(3);
+  expect(played).toHaveLength(4);
   expect(run.steps.map((s) => s.sessionId).sort()).toEqual([...played].sort());
 
   // Ein weiterer Durchlauf bringt die Trainingsspiele, die noch nicht dran waren.
   await page.getByRole('button', { name: 'Noch ein Durchlauf' }).click();
-  await expect(page.getByText('Tagesprogramm · Schritt 1 von 3')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Papierfalten' })).toBeVisible();
+  await expect(page.getByText('Tagesprogramm · Schritt 1 von 4')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Blockfolge' })).toBeVisible();
+  await page.goto('#/');
+  await expect(page.locator('.row strong')).toHaveText(['Blockfolge', 'Papierfalten', 'Schnittansichten', 'Kopfrechnen']);
 });

@@ -97,23 +97,25 @@ Brain-Training-PWA fürs Handy (Training: räumliches Denken + Verarbeitungsgesc
 | `npx vitest run <pfad> --reporter=verbose` | einzelne Tests mit Details |
 | `npm run check` | Typprüfung (svelte-check) |
 | `npm run build` | Typprüfung + Produktions-Build nach `dist/` |
-| `npm run e2e` | Playwright (WebKit, iPhone-Viewport) gegen den Produktions-Build; einmalig vorher `npx playwright install webkit` |
+| `npm run e2e` | Playwright gegen den Produktions-Build in zwei Profilen: `iphone` (WebKit) und `pixel` (Chromium); einzeln mit `npx playwright test --project=iphone`; einmalig vorher `npx playwright install webkit chromium` |
+| `npx --yes @lhci/cli@0.15 autorun` | Lighthouse gegen den Produktions-Build (Schwelle 0,95 je Kategorie), vorher `npm run build` |
 | `node scripts/make-icons.mjs` | PNG-Icons aus `public/icons/icon.svg` neu erzeugen (nur nach Änderung des SVG) |
 
-Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` (im Tagesprogramm mit `?mode=…&run=<durchlauf>`) · `#/dev/styleguide`.
+Routen (Hash-Router): `#/` Heute · `#/spiele` · `#/fortschritt` · `#/einstellungen` · `#/spiel/<id>` (im Tagesprogramm mit `?mode=…&run=<durchlauf>`) · `#/dev/styleguide` · `#/dev/timing` (Timing-Messung).
 
 ### Ordnerstruktur
 
 ```
 src/
-  core/      reine Kernmodule ohne DOM-Abhängigkeit der Logik: timing, staircase, fraction, srs, rng
-  data/      types (Datenmodell), db (Dexie-Schema), repo (einziger Datenzugang)
+  core/      reine Kernmodule ohne DOM-Abhängigkeit der Logik: timing, timingReport, staircase, fraction, srs, rng
+  data/      types (Datenmodell), db (Dexie-Schema), backup (Export/Import), repo (einziger Datenzugang)
   design/    tokens.css (alle Gestaltungswerte), base.css
-  ui/        Basiskomponenten: Button, Card, Segmented, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Icon
+  ui/        Basiskomponenten: Button, Card, Segmented, Switch, Stepper, TimeInput, WeekdayPicker, Numpad, GameFrame, ResultScreen, ProgressBar, ProgressRing, Sparkline, Icon
   games/     types (GameDefinition), registry, metrics, e2e + je Spiel ein Ordner (logic, Run, Tutorial, index)
   program/   Tagesprogramm: planDaily (Auswahl), run (Ablauf eines Durchlaufs)
-  routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte
-  app/       App.svelte (Shell), router, theme, TabBar
+  progress/  Fortschritt: stats (Wochenziel, Kalender, Verläufe, Bestwerte als reine Funktionen)
+  routes/    Seiten; Play.svelte ist der Host für jedes Spiel; dev/Styleguide.svelte, dev/Timing.svelte
+  app/       App.svelte (Shell), router, theme, motion, storage, backupFile, TabBar
 e2e/         Playwright-Tests und helpers
 public/      Icons (werden unverändert ausgeliefert)
 scripts/     Hilfsskripte (make-icons)
@@ -121,13 +123,13 @@ scripts/     Hilfsskripte (make-icons)
 docs/        PLAN, HANDOFF, DECISIONS, ADDING_A_GAME, GAMES
 ```
 
-Abhängigkeiten zeigen nur nach unten: `routes` → `games`/`ui` → `core`/`data`. `core` importiert nichts aus anderen Ordnern.
+Abhängigkeiten zeigen nur nach unten: `routes` → `program`/`progress`/`games`/`ui` → `core`/`data`. `core` importiert nichts aus anderen Ordnern.
 
 ### Verbindliche Regeln
 
 1. **Nur Design-Tokens und Basiskomponenten.** Keine festen Farben, Schriftgrößen, Abstände, Radien oder Zeiten in Komponenten – immer `var(--…)` aus `src/design/tokens.css`. Bedienelemente kommen aus `src/ui/`. Fehlt eine Komponente oder ein Token, wird es dort ergänzt und im Styleguide gezeigt, nicht lokal nachgebaut.
-2. **Reize nur über die Timing-Engine.** Alles, was im Spiel zeitlich zählt – Reizbeginn, Darbietungsdauer, Masken, Wartezeiten, Reaktionszeiten – läuft über `timing` aus `src/core/timing.ts` (`onset`, `present`, `wait`, `rt`, `quantize`). Kein `setTimeout`/`setInterval` in Spielen. Antworten werden per `pointerdown` angenommen.
-3. **Daten nur über das Repository.** Zugriff auf IndexedDB ausschließlich über `repo` aus `src/data/repo.ts`; niemand sonst importiert Dexie oder `db.ts`. Spiele speichern nicht selbst – der Host tut es. Schemaänderungen nur als neue `version(n+1)` (Regeln in `db.ts` und D4). Rohdaten (`trials`) werden nie verändert oder gelöscht; Kennzahlen werden daraus berechnet.
+2. **Reize nur über die Timing-Engine.** Alles, was im Spiel zeitlich zählt – Reizbeginn, Darbietungsdauer, Masken, Wartezeiten, Reaktionszeiten – läuft über `timing` aus `src/core/timing.ts` (`onset`, `present`, `wait`, `every`, `rt`, `quantize`). Kein `setTimeout`/`setInterval` in Spielen. Antworten werden per `pointerdown` angenommen.
+3. **Daten nur über das Repository.** Zugriff auf IndexedDB ausschließlich über `repo` aus `src/data/repo.ts`; niemand sonst importiert Dexie oder `db.ts`. Spiele speichern nicht selbst – der Host tut es. Schemaänderungen nur als neue `version(n+1)` (neuer Eintrag in `SCHEMA`; Regeln in `db.ts` und D4) – der Import von Sicherungen läuft durch dieselben Schritte (D15). Rohdaten (`trials`) werden nie verändert oder gelöscht; Kennzahlen werden daraus berechnet.
 4. **Neue Spiele nur per Vorlage.** `/neues-spiel <id>` bzw. `docs/ADDING_A_GAME.md`. Jedes Spiel erfüllt `GameDefinition`, hat Logik als reine Funktionen mit Tests, ein interaktives Tutorial und einen E2E-Lauf.
 5. **Exakte Arithmetik.** Rechenaufgaben und Antwortprüfung nur mit `src/core/fraction.ts` (bigint-Brüche). Gleitkomma höchstens für die Anzeige.
 6. **Zufall wird injiziert.** Logik bekommt `rng: Rng` als Parameter; Tests nutzen `seededRng`.

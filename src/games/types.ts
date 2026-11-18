@@ -48,6 +48,11 @@ export interface GameDefinition<S = unknown> {
   description: string;
   /** Erster Eintrag ist der Standardmodus. */
   modes: GameMode[];
+  /**
+   * Optionaler Einstufungslauf: Der Host bietet ihn an, solange das Spiel noch nie zu Ende gespielt
+   * wurde. `Run` bekommt ihn als `mode` und setzt damit die Startschwierigkeit.
+   */
+  placement?: GameMode;
 
   /** Erhöhen, wenn sich die Form von S ändert; dann `migrateState` anpassen. */
   stateVersion: number;

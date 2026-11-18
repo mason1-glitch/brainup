@@ -3,6 +3,7 @@
   import { updateStaircase } from '../../core/staircase';
   import { timing } from '../../core/timing';
   import type { RunProps } from '../types';
+  import { signal } from '../../ui/feedback';
   import Board from './Board.svelte';
   import { levelOf, makeTrial, STAIRCASE, type SectionsState, type SectionsTrial } from './logic';
 
@@ -50,6 +51,7 @@
       correct,
       difficulty: trial.level,
     });
+    signal(correct);
     stair = updateStaircase(STAIRCASE, stair, correct);
     done++;
     onProgress(done / total, `${done} / ${total}`);
