@@ -181,7 +181,7 @@ Von oben nach unten abarbeiten; jeder Unterpunkt ist ein eigener Schritt mit Com
 - **Lighthouse** sieht nur die Startseite: Es verwirft den Teil der Adresse hinter `#`, die zweite URL in `lighthouserc.json` (`#/spiele`) ist also dieselbe Seite. Andere Seiten deckt axe ab.
 - **Lighthouse in der CI:** Die Performance-Zahl hängt vom Rechner ab. Wird der Job dort knapp rot, obwohl lokal 0,99 herauskommt: Messwerte aus dem Artefakt `.lighthouseci` ansehen, nicht die Schwelle senken.
 - **Bekannter Grenzfall:** `--ink-3` auf `--sunken` hat im hellen Schema nur 4,23 : 1. Keine der geprüften Stellen nutzt die Kombination für Text; wer kleinen Text auf `--sunken` setzt, nimmt `--ink-2`.
-- **CI-Dauer:** drei parallele Jobs (`test` = iPhone-Profil, `pixel`, `lighthouse`); `test` hat 30 Minuten Zeit.
+- **CI-Dauer:** drei parallele Jobs (`test` = iPhone-Profil, `pixel`, `lighthouse`); `test` hat 30 Minuten Zeit und braucht normal ≈ 16. Am 18.11. lief er einmal ins Zeitlimit, weil `playwright install --with-deps webkit` 27 Minuten auf den Ubuntu-Paketspiegel wartete (83 kB/s) – kein Fehler im Code; der neu gestartete Job (`gh run rerun <id> --failed`) lief durch. Passiert das öfter: die Systempakete cachen oder ein Container-Image von Playwright nehmen.
 
 ## Noch nicht geprüft
 
